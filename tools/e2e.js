@@ -125,11 +125,15 @@ async function layoutReport(page) {
     await clickOption(page, 0);
     const q3 = await page.textContent('.question');
     check(q3.includes('事業所・施設') && roleNoteB.includes('施設長'), `障がい福祉の呼び方：「${q3}」`);
+    const q3img = await page.$eval('.mascot--question', (i) => i.getAttribute('src'));
+    check(q3img === 'assets/' + C.images.question, `ふつうの質問のフクノネコ：${q3img}`);
 
     // 戻るボタン
     await page.click('#back');
     await page.waitForTimeout(100);
     const backQ = await page.textContent('.question');
+    const worryImg = await page.$eval('.mascot--question', (i) => i.getAttribute('src'));
+    check(worryImg === 'assets/' + C.roles.A.questions[1].mascot, `悩みを聞く質問のフクノネコ：${worryImg}`);
     const sel = await page.locator('.option.is-selected').count();
     check(backQ === C.roles.A.questions[1].text && sel === 1, '戻るボタンで前の質問に戻り、前回の選択が表示される');
     await page.goBack();
@@ -147,6 +151,8 @@ async function layoutReport(page) {
       const a = answersFor(typeId);
       await runFlow(page, base, { fieldIndex: fi++ % 4, ...a });
       const name = await page.textContent('.result-hero__name');
+      const mascot = await page.$eval('.mascot--result', (i) => [i.getAttribute('src'), i.naturalWidth]);
+      check(mascot[0] === 'assets/' + C.types[typeId].mascot && mascot[1] > 0, `  フクノネコ：${mascot[0]}`);
       const ctas = await page.$$eval('[data-cta]', (els) => els.map((e) => e.getAttribute('href')));
       const expectedCtas = C.types[typeId].ctas.map((c) => C.links[c.link]);
       check(name === C.types[typeId].name && JSON.stringify(ctas) === JSON.stringify(expectedCtas),
@@ -163,6 +169,8 @@ async function layoutReport(page) {
     await page.click('#start');
     const q = await page.textContent('.question');
     const note = await page.locator('.option__sub').nth(0).textContent();
+    const roleImg = await page.$eval('.mascot--question', (i) => i.getAttribute('src'));
+    check(roleImg === 'assets/' + C.images.basicQuestion, `立場の質問のフクノネコ：${roleImg}`);
     check(q === C.roleQuestion.text && note.includes('保育士'), `Q1（分野）をスキップし、立場の質問から開始（${note}）`);
     await clickOption(page, 0);
     await clickOption(page, 0);

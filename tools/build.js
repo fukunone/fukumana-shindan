@@ -59,6 +59,10 @@ function footerHtml() {
 </footer>`;
 }
 
+function logoTag(prefix) {
+  return `<img src="${prefix}${esc(C.images.logo)}" alt="福祉経営を学ぶなら フクマナ" class="site-header__logo">`;
+}
+
 // ---------- index.html の OGP ----------
 function buildIndex() {
   const file = path.join(ROOT, 'index.html');
@@ -71,7 +75,12 @@ function buildIndex() {
   });
   const re = /(<!-- OGP:START[^>]*-->\n)[\s\S]*?(\n<!-- OGP:END -->)/;
   if (!re.test(html)) throw new Error('index.html に OGP:START / OGP:END の目印が見つかりません');
-  write('index.html', html.replace(re, (_, a, b) => a + block + b));
+  const header = `  <a class="site-header__brand" href="${esc(C.links.top)}" target="_blank" rel="noopener">
+    ${logoTag('assets/')}
+  </a>`;
+  const reHeader = /(<!-- HEADER:START[^>]*-->\n)[\s\S]*?(\n<!-- HEADER:END -->)/;
+  if (!reHeader.test(html)) throw new Error('index.html に HEADER:START / HEADER:END の目印が見つかりません');
+  write('index.html', html.replace(re, (_, a, b) => a + block + b).replace(reHeader, (_, a, b) => a + header + b));
 }
 
 // ---------- タイプ別結果ページ ----------
@@ -88,7 +97,7 @@ function buildTypePage(id) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f08a3c">
+<meta name="theme-color" content="#005660">
 <!-- このファイルは tools/build.js が自動生成します。直接編集せず data/content.json を編集してください。 -->
 ${ogpTags({
   title: `${t.name}｜${C.site.title}`,
@@ -105,7 +114,7 @@ ${ogpTags({
 <body>
 <header class="site-header">
   <a class="site-header__brand" href="${esc(C.links.top)}" target="_blank" rel="noopener">
-    <img src="../assets/logo.png" alt="フクマナ" class="site-header__logo">
+    ${logoTag('../assets/')}
   </a>
 </header>
 
@@ -113,7 +122,7 @@ ${ogpTags({
   <section class="screen screen--result" style="--type-color:${esc(t.color)}" data-type="${esc(id)}">
     <div class="result-hero">
       <p class="result-hero__label">${esc(S.label)}</p>
-      <img class="mascot mascot--result" src="../assets/fukuneko.png" alt="フクマナ公式キャラクター フクノネコ" width="160" height="160">
+      <img class="mascot mascot--result" src="../assets/${esc(t.mascot)}" alt="フクマナ公式キャラクター フクノネコ" width="180" height="180">
       <h1 class="result-hero__name">${esc(t.name)}</h1>
       <p class="result-hero__catch">${esc(t.catch)}</p>
       <p class="result-hero__desc">${esc(desc)}</p>
@@ -165,12 +174,12 @@ async function buildOgpImages() {
   try {
     const page = await browser.newPage();
     await page.goto(base + 'tools/ogp.html');
-    const jobs = [{ id: 'top', opts: { title: C.site.shortTitle, label: 'あなたに合った学び方がわかる', name: C.site.shortTitle, catch: '約2分・無料。おすすめの講義と次の一歩をご提案します。' } }];
+    const jobs = [{ id: 'top', opts: { title: C.site.shortTitle, label: 'あなたに合った学び方がわかる', name: C.site.shortTitle, catch: '約2分・無料。おすすめの講義と次の一歩をご提案します。', mascot: C.images.ogpTop } }];
     for (const [id, t] of Object.entries(C.types)) {
-      jobs.push({ id, opts: { title: C.site.shortTitle, label: '学びタイプ', name: t.name, catch: t.catch, color: t.color } });
+      jobs.push({ id, opts: { title: C.site.shortTitle, label: '学びタイプ', name: t.name, catch: t.catch, color: t.color, mascot: t.mascot } });
     }
     for (const job of jobs) {
-      const dataUrl = await page.evaluate((opts) => window.renderOgp(opts), job.opts);
+      const dataUrl = await page.evaluate((opts) => window.renderOgp(opts), { ...job.opts, logo: C.images.logo });
       write(`assets/ogp/${job.id}.png`, Buffer.from(dataUrl.split(',')[1], 'base64'));
     }
   } finally {
@@ -198,7 +207,7 @@ async function buildQr() {
 }
 
 (async () => {
-  const errors = validate(C);
+  const errors = validate(C, ROOT);
   if (errors.length) {
     console.error('data/content.json に問題があります：\n- ' + errors.join('\n- '));
     process.exit(1);

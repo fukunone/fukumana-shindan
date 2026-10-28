@@ -24,7 +24,7 @@ function check(ok, msg) {
 
 // ---------- 1. content.json ----------
 console.log('\n[1] content.json の構造');
-const errors = validate(C);
+const errors = validate(C, ROOT);
 check(errors.length === 0, 'content.json の構造チェック' + (errors.length ? '：\n     ' + errors.join('\n     ') : ''));
 
 // ---------- 2. 全パターン ----------
@@ -129,6 +129,33 @@ for (const id of Object.keys(C.types)) {
   const html = fs.readFileSync(path.join(ROOT, `r/${id}.html`), 'utf8');
   check(html.includes(`content="${C.site.url}assets/ogp/${id}.png"`) && fs.existsSync(path.join(ROOT, `assets/ogp/${id}.png`)),
     `r/${id}.html に OGP画像（assets/ogp/${id}.png）が設定されている`);
+}
+
+// ---------- 5. 配色のコントラスト ----------
+console.log('\n[5] 配色のコントラスト（文字 4.5 以上）');
+{
+  const { contrast } = require('./validate');
+  const css = fs.readFileSync(path.join(ROOT, 'css/style.css'), 'utf8');
+  const v = {};
+  (css.match(/--color-[\w-]+:\s*#[0-9a-fA-F]{6}/g) || []).forEach((m) => {
+    const [k, val] = m.split(/:\s*/);
+    v[k.replace('--color-', '')] = val;
+  });
+  const pairs = [
+    ['text', 'bg', '本文／背景'], ['text', 'surface', '本文／カード'], ['sub', 'bg', '補足文／背景'], ['sub', 'surface', '補足文／カード'],
+    ['accent-text', 'bg', 'リンク・Q番号／背景'], ['accent-text', 'surface', 'リンク／カード'], ['brand', 'tint', '注意書き・選択中／淡い背景'],
+    ['text', 'tint', '本文／淡い背景'], ['brand', 'surface', '副ボタン文字／白'], ['line-app-text', 'line-app', 'LINEボタン']
+  ];
+  pairs.forEach(([fg, bg, label]) => {
+    const r = contrast(v[fg], v[bg]);
+    check(r >= 4.5, `${label}（${v[fg]} / ${v[bg]}）${r.toFixed(2)}`);
+  });
+  const r = contrast('#ffffff', v.brand);
+  check(r >= 4.5, `メインボタン 白文字／${v.brand} ${r.toFixed(2)}`);
+  for (const [id, t] of Object.entries(C.types)) {
+    const c = contrast(t.color, '#ffffff');
+    check(c >= 4.5, `タイプ色 ${C.types[id].name}（${t.color}）／白 ${c.toFixed(2)}`);
+  }
 }
 
 console.log(failed ? `\n${failed}件の問題があります` : '\nすべてのチェックに合格しました');

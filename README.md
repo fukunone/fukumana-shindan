@@ -56,20 +56,45 @@ npm run build
 
 ---
 
-## 3. 画像の差し替え
+## 3. 画像と配色
 
-`assets/` の画像を**同じファイル名で上書き**するだけで差し替わります。
+### 画像の使い分け
 
-| ファイル | 内容 | 推奨サイズ |
-|---|---|---|
-| `assets/fukuneko.png` | フクノネコ（トップ・結果画面・結果画像・OGP） | 正方形 800×800 px、背景透過PNG |
-| `assets/logo.png` | フクマナのロゴ（ヘッダー・結果画像・OGP） | 横長、高さ 96 px 以上、背景透過PNG |
-| `assets/favicon.png` | ブラウザのタブのアイコン | 正方形 192×192 px |
+ロゴ・フクノネコの画像は `assets/` に置き、どの場面で使うかを `data/content.json` の `images`（共通）と、各質問・各タイプの `mascot` で指定しています。
 
-GitHub の画面から差し替える場合：`assets` フォルダを開く → **Add file → Upload files** → 同名ファイルをドラッグ → **Commit changes**。
+| 場面 | 画像 | 表情・ポーズ | 選んだ理由 | 指定場所 |
+|---|---|---|---|---|
+| ヘッダー・結果画像・OGP | `FUKUMANA_LOGO_FIX-02.png` | ロゴ（福祉経営を学ぶなら フクマナ） | — | `images.logo` |
+| トップ画面・トップのOGP | `Fukunoneko_08.png` | 立ち姿・にっこり | 気軽に始めてもらう歓迎の表情 | `images.top` / `images.ogpTop` |
+| 設問：分野・立場（Q1・Q2） | `Fukunoneko_01.png` | 立ち姿・すまし顔 | 基本情報を落ち着いて尋ねる | `images.basicQuestion` |
+| 設問：立場別の質問（通常） | `Fukunoneko_03.png` | 机で勉強中 | いっしょに考えながら進む | `images.question` |
+| 設問：悩み・不安・課題を聞く質問（9問） | `Fukunoneko_02.png` | 机で「うーん」と考える | 悩みに寄り添う表情 | 各質問の `mascot` |
+| 結果：現場リーダー候補タイプ | `Fukunoneko_07.png` | 立ち姿・「おや？」 | 新しい役割に気づき始めた様子 | `types.leader.mascot` |
+| 結果：未来の経営者タイプ | `Fukunoneko_09.png` | 立ち姿・「わぁ！」 | 未来の事業にワクワク | `types.future-owner.mascot` |
+| 結果：現場のプロフェッショナルタイプ | `Fukunoneko_06.png` | 立ち姿・口元きりっと | ひたむきに向き合う | `types.professional.mascot` |
+| 結果：チームを育てる中核人財タイプ | `Fukunoneko_08.png` | 立ち姿・にっこり | 人が育つ喜び | `types.core.mascot` |
+| 結果：経営視点を磨くマネージャータイプ | `Fukunoneko_04.png` | 机で電球・グッド | 数字で「ひらめく」 | `types.manager.mascot` |
+| 結果：組織を育てる経営者タイプ | `Fukunoneko_01.png` | 立ち姿・すまし顔 | どっしり見守る | `types.exec-people.mascot` |
+| 結果：経営基盤を固める経営者タイプ | `Fukunoneko_03.png` | 机で勉強中 | 数字に向き合い土台を固める | `types.exec-finance.mascot` |
+| 結果：選ばれる法人をつくる経営者タイプ | `Fukunoneko_05.png` | 立ち姿・話しかける口 | 法人の魅力を発信する | `types.exec-brand.mascot` |
+| 結果：開業準備タイプ | `Fukunoneko_09.png` | 立ち姿・「わぁ！」 | 想いを形にするワクワク | `types.kaigyo.mascot` |
+| ブラウザのタブ | `favicon.png` | `Fukunoneko_01.png` の顔部分 | — | （固定） |
+
+- 結果画面（タイプ別）・タイプ別の結果ページ・結果画像（1080×1080）・OGP画像（1200×630）は、同じタイプなら同じフクノネコを使います。
+- 画像を差し替えるとき：同じファイル名で上書きするか、新しいファイルを `assets/` に追加して上の「指定場所」のファイル名を書き換えます。
+- 画像は背景が透明なPNGにしてください。周りの透明な余白は、結果画像・OGP画像では自動で切り詰めます。
+
+GitHub の画面から追加する場合：`assets` フォルダを開く → **Add file → Upload files** → ファイルをドラッグ → **Commit changes**。
 OGP画像（SNSのプレビュー）は公開時に自動で作り直されます。
 
-色は `css/style.css` の先頭（`:root { ... }`）にまとめてあります。タイプごとの色は `data/content.json` の各タイプの `color` です。
+### 配色
+
+ロゴ（濃い青緑 `#005660`・青緑 `#00979f`）とフクノネコ（青緑 `#00aab2`・濃い青緑 `#00545f`・ミント `#9de2d9`）の色を基準にしています。
+文字に使う色は、背景とのコントラスト比（文字の読みやすさの指標。4.5以上が目安）が4.5以上になるようにしています。`npm test` で自動チェックされます。
+
+- サイト全体の色：`css/style.css` の先頭（`:root { ... }`）
+- タイプごとの色（結果画面の見出し・結果画像・OGPの帯）：`data/content.json` の各タイプの `color`
+- 結果画像・OGPの背景や文字の色：`js/card.js` の `THEME`
 
 ---
 

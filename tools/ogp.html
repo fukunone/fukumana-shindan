@@ -11,12 +11,12 @@
 <script>
 window.renderOgp = async function (opts) {
   const [mascot, logo] = await Promise.all([
-    FukumanaCard.loadImage('../assets/fukuneko.png'),
-    FukumanaCard.loadImage('../assets/logo.png')
+    FukumanaCard.loadImage('../assets/' + opts.mascot),
+    FukumanaCard.loadImage('../assets/' + opts.logo)
   ]);
   await FukumanaCard.waitFonts(Object.values(opts).join(''));
   const canvas = document.getElementById('c');
-  FukumanaCard.draw(canvas, Object.assign({ layout: 'ogp', mascot, logo }, opts));
+  FukumanaCard.draw(canvas, Object.assign({ layout: 'ogp' }, opts, { mascot, logo }));
   return canvas.toDataURL('image/png');
 };
 </script>
