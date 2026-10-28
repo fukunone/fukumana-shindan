@@ -21,6 +21,12 @@
       .replace(/\{staff\}/g, f.staff);
   }
 
+  /** 読点「、」の後ろで区切る（画面で改行位置をそろえるため）。例：「人が育つ職場を、」「まんなかで支える人。」 */
+  function phrases(text) {
+    // 古い iPhone でも動くよう、後読みの正規表現は使わない
+    return String(text == null ? '' : text).replace(/、/g, '、\n').split('\n').filter(function (p) { return p; });
+  }
+
   function findField(content, id) {
     for (var i = 0; i < content.fields.length; i++) {
       if (content.fields[i].id === id) return content.fields[i];
@@ -115,5 +121,5 @@
     };
   }
 
-  return { fill: fill, findField: findField, diagnose: diagnose, GENERIC_FIELD: GENERIC_FIELD };
+  return { fill: fill, phrases: phrases, findField: findField, diagnose: diagnose, GENERIC_FIELD: GENERIC_FIELD };
 });

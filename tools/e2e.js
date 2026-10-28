@@ -297,6 +297,25 @@ async function layoutReport(page) {
     await ctx.close();
   }
 
+  // ---------- 5b. キャッチコピーの改行 ----------
+  console.log('\n[5b] キャッチコピーが読点の位置で改行される（1〜2文字だけの行ができない）');
+  for (const width of [360, 390, 768]) {
+    const page = await browser.newPage({ viewport: { width, height: 800 } });
+    const bad = [];
+    for (const id of Object.keys(C.types)) {
+      await page.goto(base + `r/${id}.html`);
+      await page.evaluate(() => document.fonts.ready);
+      const r = await page.evaluate(() => {
+        const lh = parseFloat(getComputedStyle(document.querySelector('.result-hero__catch')).lineHeight);
+        return Array.from(document.querySelectorAll('.result-hero__catch .phrase')).map((p) => [p.textContent, p.getBoundingClientRect().height <= lh * 1.2]);
+      });
+      r.filter(([, ok]) => !ok).forEach(([t]) => bad.push(`${id}「${t}」`));
+      if (!r.length) bad.push(`${id}：かたまりが見つからない`);
+    }
+    check(bad.length === 0, `${width}px：9タイプすべてで、読点ごとのかたまりが1行に収まる` + (bad.length ? '：' + bad.join(' ') : ''));
+    await page.close();
+  }
+
   // ---------- 6. タイプ別結果ページ ----------
   console.log('\n[6] タイプ別結果ページ（シェアされたリンクの先）');
   {

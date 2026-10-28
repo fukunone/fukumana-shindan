@@ -34,6 +34,10 @@
   function baseUrl() { return new URL('./', location.href.split('#')[0]).href.split('?')[0]; }
   function displayUrl(u) { return u.replace(/^https?:\/\//, '').replace(/\/$/, ''); }
   function img(file) { return 'assets/' + file; }
+  // 読点ごとに改行しないかたまりにする（「支える／人。」のような1文字だけの改行を防ぐ）
+  function phraseHtml(text) {
+    return D.phrases(text).map(function (p) { return '<span class="phrase">' + esc(p) + '</span>'; }).join('');
+  }
   var MASCOT_ALT = 'フクマナ公式キャラクター フクノネコ';
 
   function presetField() {
@@ -258,7 +262,7 @@
           '<p class="result-hero__label">' + esc(R.label) + '</p>' +
           '<img class="mascot mascot--result" src="' + esc(img(type.mascot)) + '" alt="' + MASCOT_ALT + '" width="180" height="180">' +
           '<h1 class="result-hero__name" tabindex="-1" data-focus>' + esc(type.name) + '</h1>' +
-          '<p class="result-hero__catch">' + esc(type.catch) + '</p>' +
+          '<p class="result-hero__catch">' + phraseHtml(type.catch) + '</p>' +
           '<p class="result-hero__desc">' + esc(D.fill(r.description, field)) + '</p>' +
         '</div>' +
 
