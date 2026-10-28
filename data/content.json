@@ -1,0 +1,503 @@
+{
+  "_編集メモ": "このファイルに診断の文言・質問・結果・リンクがすべてまとまっています。編集方法は README.md の「文言の編集」を参照してください。{place} は分野に応じて「園／事業所・施設／職場」、{staff} は「保育士／職員」に置き換わります。",
+
+  "site": {
+    "url": "https://fukunone.github.io/fukumana-shindan/",
+    "title": "福祉経営 学びタイプ診断｜フクマナ",
+    "shortTitle": "福祉経営 学びタイプ診断",
+    "description": "5〜6問・約2分で、あなたに合った福祉経営の学び方が分かる無料診断。おすすめの講義と、次の一歩をご提案します。",
+    "shareText": "福祉経営 学びタイプ診断の結果は「{name}」でした！\n{catch}",
+    "hashtags": ["フクマナ", "福祉経営"]
+  },
+
+  "links": {
+    "line": "https://lin.ee/ru4M1zks",
+    "company": "https://fukunone.org/company-plan/",
+    "keiei": "https://wwmc.fukunone.org/curriculum/index.html#keiei",
+    "top": "https://wwmc.fukunone.org/",
+    "contactEmail": "support@fukunone.org"
+  },
+
+  "top": {
+    "eyebrow": "フクマナ",
+    "title": "福祉経営 学びタイプ診断",
+    "lead": "いくつかの質問に答えるだけで、あなたに合った「福祉経営の学び方」とおすすめの講義が分かります。",
+    "time": "所要時間 約2分",
+    "privacy": "回答は保存されません。お使いの端末の中だけで診断します。",
+    "start": "診断をはじめる"
+  },
+
+  "footer": {
+    "operator": "運営 合同会社フクノネ",
+    "contactLabel": "お問合せ"
+  },
+
+  "fieldQuestion": {
+    "text": "お仕事の分野を教えてください",
+    "note": "画面の言葉づかいを合わせるために使います"
+  },
+
+  "fields": [
+    {
+      "id": "hoiku",
+      "label": "保育",
+      "place": "園",
+      "staff": "保育士",
+      "roleNotes": {
+        "A": "保育士・保育補助など",
+        "B": "主任・リーダー・園長など",
+        "C": "園を運営する法人の経営者・役員・理事",
+        "D": "これから園の開設・法人設立を考えている"
+      }
+    },
+    {
+      "id": "shogai",
+      "label": "障がい福祉",
+      "place": "事業所・施設",
+      "staff": "職員",
+      "roleNotes": {
+        "A": "支援員・指導員など",
+        "B": "主任・リーダー・管理者・施設長など",
+        "C": "事業所・施設を運営する法人の経営者・役員・理事",
+        "D": "これから事業所の開設・法人設立を考えている"
+      }
+    },
+    {
+      "id": "kaigo",
+      "label": "介護",
+      "place": "事業所・施設",
+      "staff": "職員",
+      "roleNotes": {
+        "A": "介護職・相談員など",
+        "B": "主任・リーダー・管理者・施設長など",
+        "C": "事業所・施設を運営する法人の経営者・役員・理事",
+        "D": "これから事業所の開設・法人設立を考えている"
+      }
+    },
+    {
+      "id": "other",
+      "label": "その他",
+      "place": "職場",
+      "staff": "職員",
+      "roleNotes": {
+        "A": "現場の職員・スタッフなど",
+        "B": "主任・リーダー・管理職など",
+        "C": "法人・会社の経営者・役員・理事",
+        "D": "これから開業・法人設立を考えている"
+      }
+    }
+  ],
+
+  "roleQuestion": {
+    "text": "いまの立場に近いものを選んでください",
+    "options": [
+      { "id": "A", "label": "一般職員" },
+      { "id": "B", "label": "管理職" },
+      { "id": "C", "label": "経営者・役員・理事" },
+      { "id": "D", "label": "開業・法人設立を検討中" }
+    ]
+  },
+
+  "courses": {
+    "finance":    { "name": "財務・会計", "kind": "本講義", "area": "お金の流れを読む力", "desc": "収入と支出の仕組み、決算書の読み方を基礎から学べます。" },
+    "tax":        { "name": "税務", "kind": "本講義", "area": "税の判断力", "desc": "法人運営に関わる税の基本と、判断に迷いやすいポイントを整理できます。" },
+    "labor":      { "name": "労務", "kind": "本講義", "area": "働くルールの理解", "desc": "勤務・休暇・処遇など、働くルールの基本とトラブル予防の考え方を学べます。" },
+    "management": { "name": "マネジメント", "kind": "本講義", "area": "チームをまとめる力", "desc": "チームのまとめ方や伝え方、現場と経営をつなぐ役割を学べます。" },
+    "kaigyo":     { "name": "開業", "kind": "本講義", "area": "事業を形にする力", "desc": "開業・法人設立の流れと、事業計画づくりの考え方を学べます。" },
+    "analysis":   { "name": "内部統制・経営分析", "kind": "本講義", "area": "経営を数字で見る力", "desc": "経営状況を数字でつかみ、分かりやすく伝える力が身につきます。" },
+    "marketing":  { "name": "マーケティング", "kind": "本講義", "area": "選ばれる発信力", "desc": "利用者や求職者から「選ばれる」ための伝え方・見せ方を学べます。" },
+    "sp1":        { "name": "上手な銀行の活用術", "kind": "特別講義1", "area": "金融機関と付き合う力", "desc": "金融機関と上手に付き合うための考え方と、相談のコツを学べます。" },
+    "sp2":        { "name": "福祉施設の採用戦略", "kind": "特別講義2", "area": "人を呼び込む力", "desc": "人が集まる職場づくりと、採用活動の進め方のヒントが得られます。" },
+    "sp3":        { "name": "現場から考える育成・評価・配置", "kind": "特別講義3", "area": "人を育てる力", "desc": "現場の実感から、育成・評価・配置の考え方を整理できます。" }
+  },
+
+  "advice": {
+    "base": "フクマナは1講義約4分。スマホ・タブレット・PCのどれでも、好きなときに続きから学べます。"
+  },
+
+  "roles": {
+    "A": {
+      "name": "一般職員",
+      "priority": ["management", "finance", "labor", "sp3", "kaigyo", "analysis", "marketing", "sp2", "tax", "sp1"],
+      "typeRule": { "by": "tag", "key": "career", "map": { "pro": "professional", "leader": "leader", "owner": "future-owner", "unknown": "leader" } },
+      "advice": {
+        "key": "time",
+        "byTag": {
+          "short": "スキマ時間で十分です。通勤中や休憩中に1講義ずつ、無理なく進めましょう。",
+          "mid": "週に数時間とれるなら、気になる分野を1つ決めて、まとめて学ぶのがおすすめです。",
+          "long": "まとまった時間がとれるなら、本講義を順番に見て、経営の全体像をつかみましょう。"
+        }
+      },
+      "questions": [
+        {
+          "text": "将来、どんな働き方をしたいですか？",
+          "options": [
+            { "label": "今の現場を極めたい", "tags": { "career": "pro" }, "scores": { "sp3": 1, "labor": 1 } },
+            { "label": "リーダー・管理職になりたい", "tags": { "career": "leader" }, "scores": { "management": 2 } },
+            { "label": "いつか自分で開業したい", "tags": { "career": "owner" }, "scores": { "kaigyo": 3, "finance": 2 } },
+            { "label": "まだ分からない", "tags": { "career": "unknown" }, "scores": { "management": 1 } }
+          ]
+        },
+        {
+          "text": "後輩への教え方や、チームのまとめ方に悩むことはありますか？",
+          "options": [
+            { "label": "よくある", "scores": { "management": 3, "sp3": 3 } },
+            { "label": "ときどきある", "scores": { "management": 2, "sp3": 2 } },
+            { "label": "あまりない", "scores": { "management": 1 } },
+            { "label": "ほとんどない", "scores": {} }
+          ]
+        },
+        {
+          "text": "{place}の運営のお金（収入・支出の仕組み）について、知りたいと思いますか？",
+          "options": [
+            { "label": "とても知りたい", "scores": { "finance": 3, "analysis": 1 } },
+            { "label": "少し気になる", "scores": { "finance": 2 } },
+            { "label": "今はあまり関心がない", "scores": {} }
+          ]
+        },
+        {
+          "text": "勤務・休暇・処遇など、働き方のルールを説明できる自信はありますか？",
+          "options": [
+            { "label": "自信がある", "scores": {} },
+            { "label": "なんとなくなら", "scores": { "labor": 1 } },
+            { "label": "あまり自信がない", "scores": { "labor": 2 } },
+            { "label": "まったく自信がない", "scores": { "labor": 3 } }
+          ]
+        },
+        {
+          "text": "{place}の魅力を、外の人に伝えたいと思うことはありますか？",
+          "options": [
+            { "label": "よくある", "scores": { "marketing": 2, "sp2": 2 } },
+            { "label": "ときどきある", "scores": { "marketing": 1, "sp2": 1 } },
+            { "label": "あまりない", "scores": {} }
+          ]
+        },
+        {
+          "text": "学ぶ時間はどれくらい取れそうですか？",
+          "note": "フクマナは1講義約4分です",
+          "options": [
+            { "label": "スキマ時間なら", "tags": { "time": "short" } },
+            { "label": "週に数時間なら", "tags": { "time": "mid" } },
+            { "label": "まとまって取れる", "tags": { "time": "long" } }
+          ]
+        }
+      ]
+    },
+
+    "B": {
+      "name": "管理職",
+      "priority": ["sp3", "management", "finance", "analysis", "labor", "sp2", "marketing", "tax", "sp1", "kaigyo"],
+      "typeRule": {
+        "by": "group",
+        "groups": [
+          { "type": "core", "courses": ["management", "sp3"] },
+          { "type": "manager", "courses": ["finance", "analysis"] }
+        ]
+      },
+      "advice": {
+        "default": "忙しい管理職の方でも、1講義約4分なら業務の合間に学べます。学んだ内容をそのまま職員への説明に使えるのも強みです。"
+      },
+      "questions": [
+        {
+          "text": "職員の育成・評価・配置について、悩みはありますか？",
+          "options": [
+            { "label": "大いにある", "scores": { "sp3": 3, "management": 1 } },
+            { "label": "ややある", "scores": { "sp3": 2, "management": 1 } },
+            { "label": "あまりない", "scores": { "sp3": 1 } },
+            { "label": "ない", "scores": {} }
+          ]
+        },
+        {
+          "text": "職員の採用は、うまくいっていると感じますか？",
+          "options": [
+            { "label": "うまくいっている", "scores": {} },
+            { "label": "まあまあ", "scores": { "sp2": 1 } },
+            { "label": "あまりうまくいっていない", "scores": { "sp2": 2, "marketing": 1 } },
+            { "label": "うまくいっていない", "scores": { "sp2": 3, "marketing": 2 } }
+          ]
+        },
+        {
+          "text": "決算書や事業の収支を読んで、説明できますか？",
+          "options": [
+            { "label": "自信をもって説明できる", "scores": {} },
+            { "label": "なんとなく分かる", "scores": { "finance": 1, "analysis": 1 } },
+            { "label": "あまり自信がない", "scores": { "finance": 3, "analysis": 2 } },
+            { "label": "ほとんど分からない", "scores": { "finance": 4, "analysis": 3 } }
+          ]
+        },
+        {
+          "text": "勤務・休暇・処遇などをめぐる労務トラブルへの対応に、不安はありますか？",
+          "options": [
+            { "label": "大いにある", "scores": { "labor": 3 } },
+            { "label": "ややある", "scores": { "labor": 2 } },
+            { "label": "あまりない", "scores": { "labor": 1 } },
+            { "label": "ない", "scores": {} }
+          ]
+        },
+        {
+          "text": "経営層と現場の間に立つことの難しさを感じますか？",
+          "options": [
+            { "label": "とても感じる", "scores": { "management": 3 } },
+            { "label": "ときどき感じる", "scores": { "management": 2 } },
+            { "label": "あまり感じない", "scores": { "management": 1 } },
+            { "label": "感じない", "scores": {} }
+          ]
+        }
+      ]
+    },
+
+    "C": {
+      "name": "経営者・役員・理事",
+      "priority": ["analysis", "finance", "sp3", "management", "sp2", "marketing", "sp1", "tax", "labor", "kaigyo"],
+      "typeRule": {
+        "by": "group",
+        "groups": [
+          { "type": "exec-people", "courses": ["management", "sp3"] },
+          { "type": "exec-finance", "courses": ["finance", "analysis", "tax", "sp1"] },
+          { "type": "exec-brand", "courses": ["sp2", "marketing"] }
+        ]
+      },
+      "advice": {
+        "key": "training",
+        "byTag": {
+          "ok": "確保できている研修時間に、経営の視点を学ぶ講義を加えると、職員の学びの幅が広がります。",
+          "some": "1講義約4分なので、既存の研修に組み込んだり、各自のペースで受講してもらったりと柔軟に使えます。",
+          "none": "研修時間の確保が難しい法人こそ、1講義約4分の短さが活きます。朝礼や会議の前後など、ちょっとした時間を学びの場に変えられます。"
+        }
+      },
+      "questions": [
+        {
+          "text": "次の幹部・管理職の候補は育っていますか？",
+          "options": [
+            { "label": "育っている", "scores": {} },
+            { "label": "ある程度育っている", "scores": { "management": 1, "sp3": 1 } },
+            { "label": "あまり育っていない", "scores": { "management": 2, "sp3": 2 } },
+            { "label": "育っていない", "scores": { "management": 3, "sp3": 3 } }
+          ]
+        },
+        {
+          "text": "職員の研修時間を確保できていますか？",
+          "options": [
+            { "label": "確保できている", "tags": { "training": "ok" } },
+            { "label": "一部できている", "tags": { "training": "some" } },
+            { "label": "ほとんどできていない", "tags": { "training": "none" } }
+          ]
+        },
+        {
+          "text": "金融機関との付き合い方に、課題を感じますか？",
+          "options": [
+            { "label": "大いに感じる", "scores": { "sp1": 3, "finance": 2 } },
+            { "label": "やや感じる", "scores": { "sp1": 2, "finance": 1 } },
+            { "label": "あまり感じない", "scores": { "sp1": 1 } },
+            { "label": "感じない", "scores": {} }
+          ]
+        },
+        {
+          "text": "採用・人材確保に、課題を感じますか？",
+          "options": [
+            { "label": "大いに感じる", "scores": { "sp2": 3, "marketing": 2 } },
+            { "label": "やや感じる", "scores": { "sp2": 2, "marketing": 1 } },
+            { "label": "あまり感じない", "scores": { "sp2": 1 } },
+            { "label": "感じない", "scores": {} }
+          ]
+        },
+        {
+          "text": "経営状況を数字で把握し、職員に説明できていますか？",
+          "options": [
+            { "label": "できている", "scores": {} },
+            { "label": "ある程度できている", "scores": { "analysis": 1, "finance": 1 } },
+            { "label": "あまりできていない", "scores": { "analysis": 2, "finance": 1 } },
+            { "label": "できていない", "scores": { "analysis": 3, "finance": 2 } }
+          ]
+        },
+        {
+          "text": "税務・会計の判断に、不安はありますか？",
+          "options": [
+            { "label": "大いにある", "scores": { "tax": 3, "finance": 1 } },
+            { "label": "ややある", "scores": { "tax": 2 } },
+            { "label": "あまりない", "scores": { "tax": 1 } },
+            { "label": "ない", "scores": {} }
+          ]
+        }
+      ]
+    },
+
+    "D": {
+      "name": "開業・法人設立を検討中",
+      "priority": ["kaigyo", "finance", "sp1", "marketing", "sp2", "labor", "management", "analysis", "tax", "sp3"],
+      "typeRule": { "by": "fixed", "type": "kaigyo" },
+      "advice": {
+        "default": "開業準備と並行して、1講義約4分ずつ無理なく進められます。気になったところは何度でも見返せます。"
+      },
+      "questions": [
+        {
+          "text": "開業の時期の見通しは？",
+          "options": [
+            { "label": "1年以内", "tags": { "timing": "soon" }, "scores": { "kaigyo": 1 } },
+            { "label": "数年以内", "tags": { "timing": "mid" } },
+            { "label": "まだ未定", "tags": { "timing": "undecided" } }
+          ]
+        },
+        {
+          "text": "いま、いちばん不安なことは？",
+          "options": [
+            { "label": "資金・お金の計画", "scores": { "finance": 3, "sp1": 3 } },
+            { "label": "手続き・制度", "scores": { "kaigyo": 3 } },
+            { "label": "人の採用・育成", "scores": { "sp2": 3, "labor": 3 } },
+            { "label": "集客・利用者の確保", "scores": { "marketing": 3 } }
+          ]
+        },
+        {
+          "text": "事業計画書を作ったことはありますか？",
+          "options": [
+            { "label": "作ったことがある", "scores": {} },
+            { "label": "作りかけている", "scores": { "kaigyo": 2, "finance": 1 } },
+            { "label": "まだない", "scores": { "kaigyo": 3, "finance": 2 } }
+          ]
+        },
+        {
+          "text": "金融機関から融資を受ける予定はありますか？",
+          "options": [
+            { "label": "予定している", "scores": { "sp1": 3 } },
+            { "label": "検討している", "scores": { "sp1": 2 } },
+            { "label": "まだ分からない", "scores": { "sp1": 1 } },
+            { "label": "予定はない", "scores": {} }
+          ]
+        },
+        {
+          "text": "開業後、職員を雇ってチームをつくる予定はありますか？",
+          "options": [
+            { "label": "予定している", "scores": { "labor": 2, "management": 2 } },
+            { "label": "少人数から始めたい", "scores": { "labor": 1, "management": 1 } },
+            { "label": "まだ決めていない", "scores": {} }
+          ]
+        }
+      ]
+    }
+  },
+
+  "types": {
+    "leader": {
+      "role": "A",
+      "name": "現場リーダー候補タイプ",
+      "catch": "現場の声を、チームの力に変えていく人。",
+      "description": "{staff}として積み重ねてきた経験は、チームをまとめるときの大きな土台になります。「人を育てる」「職場の仕組みを知る」視点を少し足すだけで、頼られるリーダーへの道がぐっと近づきます。",
+      "color": "#f08a3c",
+      "ctas": [
+        { "link": "line", "label": "7日間無料体験をはじめる", "sub": "公式LINEから無料講義をお試しいただけます", "style": "primary" }
+      ]
+    },
+    "future-owner": {
+      "role": "A",
+      "name": "未来の経営者タイプ",
+      "catch": "現場の経験を、未来の事業の種にする人。",
+      "description": "いつか自分で開業したいという思いは、大切な原動力です。現場を知っている強みに、お金の流れや開業の進め方の知識を重ねれば、思い描く事業がより具体的になっていきます。",
+      "mustInclude": ["kaigyo", "finance"],
+      "color": "#e0605a",
+      "ctas": [
+        { "link": "line", "label": "7日間無料体験をはじめる", "sub": "公式LINEから無料講義をお試しいただけます", "style": "primary" },
+        { "link": "keiei", "label": "経営コースを見る", "sub": "代表による個別相談付き。開業に向けて本格的に学びたい方へ", "style": "secondary" }
+      ]
+    },
+    "professional": {
+      "role": "A",
+      "name": "現場のプロフェッショナルタイプ",
+      "catch": "目の前の一人ひとりに、まっすぐ向き合う人。",
+      "description": "現場を極めたいという姿勢は、{place}にとって何よりの財産です。職場の運営や働くルールの仕組みを知ると、日々の工夫に自信と説得力が加わります。",
+      "color": "#3fa37a",
+      "ctas": [
+        { "link": "line", "label": "7日間無料体験をはじめる", "sub": "公式LINEから無料講義をお試しいただけます", "style": "primary" }
+      ]
+    },
+    "core": {
+      "role": "B",
+      "name": "チームを育てる中核人財タイプ",
+      "catch": "人が育つ職場を、まんなかで支える人。",
+      "description": "職員一人ひとりに目を配り、チームを前に進めようとしているあなた。育成・評価・配置の考え方を体系的に学ぶと、日々の判断に軸が生まれ、チーム全体の力がさらに伸びていきます。",
+      "color": "#2f9bb8",
+      "ctas": [
+        { "link": "line", "label": "7日間無料体験をはじめる", "sub": "公式LINEから無料講義をお試しいただけます", "style": "primary" },
+        { "link": "company", "heading": "法人での導入を上司に提案したい方へ", "label": "法人プランの資料請求", "sub": "職員みんなで学べる法人プランの資料をお送りします", "style": "secondary" }
+      ]
+    },
+    "manager": {
+      "role": "B",
+      "name": "経営視点を磨くマネージャータイプ",
+      "catch": "現場と経営を、数字でつなぐ人。",
+      "description": "現場をよく知るあなたが経営の数字を読めるようになると、提案や説明の説得力が大きく変わります。決算書や事業の収支を理解することは、職員と法人の両方を守る力になります。",
+      "color": "#5b74c9",
+      "ctas": [
+        { "link": "line", "label": "7日間無料体験をはじめる", "sub": "公式LINEから無料講義をお試しいただけます", "style": "primary" },
+        { "link": "company", "heading": "法人での導入を上司に提案したい方へ", "label": "法人プランの資料請求", "sub": "職員みんなで学べる法人プランの資料をお送りします", "style": "secondary" }
+      ]
+    },
+    "exec-people": {
+      "role": "C",
+      "name": "組織を育てる経営者タイプ",
+      "catch": "人を育て、次の世代へつなぐ経営者。",
+      "description": "法人の未来を担う人材づくりに目を向けているあなた。育成・評価・配置の考え方を組織で共有できると幹部が育ち、経営者が本来の仕事に集中できる体制に近づきます。",
+      "color": "#3fa37a",
+      "ctas": [
+        { "link": "company", "label": "法人プランの資料請求・個別質問会", "sub": "法人様限定で5ID以上の一括申込に特典あり", "style": "primary" },
+        { "link": "line", "label": "まずはご自身で7日間無料体験", "sub": "公式LINEから無料講義をお試しいただけます", "style": "secondary" }
+      ]
+    },
+    "exec-finance": {
+      "role": "C",
+      "name": "経営基盤を固める経営者タイプ",
+      "catch": "数字と信頼で、法人の土台を固める経営者。",
+      "description": "経営状況を数字でつかみ、金融機関とも上手に付き合える力は、安定した法人運営の土台です。本業の収支を見える化して職員と共有することで、組織の一体感も高まります。",
+      "color": "#5b74c9",
+      "ctas": [
+        { "link": "company", "label": "法人プランの資料請求・個別質問会", "sub": "法人様限定で5ID以上の一括申込に特典あり", "style": "primary" },
+        { "link": "line", "label": "まずはご自身で7日間無料体験", "sub": "公式LINEから無料講義をお試しいただけます", "style": "secondary" }
+      ]
+    },
+    "exec-brand": {
+      "role": "C",
+      "name": "選ばれる法人をつくる経営者タイプ",
+      "catch": "利用者にも職員にも、選ばれる法人をつくる経営者。",
+      "description": "人材確保や発信に目を向けていること自体が、大きな伸びしろです。法人の魅力を言葉にして届ける力を磨くと、採用にも利用者の確保にも良い流れが生まれます。",
+      "color": "#f08a3c",
+      "ctas": [
+        { "link": "company", "label": "法人プランの資料請求・個別質問会", "sub": "法人様限定で5ID以上の一括申込に特典あり", "style": "primary" },
+        { "link": "line", "label": "まずはご自身で7日間無料体験", "sub": "公式LINEから無料講義をお試しいただけます", "style": "secondary" }
+      ]
+    },
+    "kaigyo": {
+      "role": "D",
+      "name": "開業準備タイプ",
+      "catch": "想いを、事業のかたちにしていく人。",
+      "description": "開業を考え始めた今が、学び始めのベストタイミング。経営の全体像を知っておくと、自分に合った開業の形や進め方が見えてきます。",
+      "descriptionByTag": {
+        "key": "timing",
+        "soon": "開業まであと少し。今は「お金の計画」と「開業までの段取り」を固める大切な時期です。事業計画と資金計画を整えて、自信を持ってスタートを切りましょう。",
+        "mid": "数年後の開業に向けて、今から準備を始められるのは大きな強みです。経営の基礎を少しずつ学んでおくと、いざというときの判断がぐっと楽になります。",
+        "undecided": "開業を考え始めた今が、学び始めのベストタイミング。経営の全体像を知っておくと、自分に合った開業の形や時期が見えてきます。"
+      },
+      "color": "#e0605a",
+      "ctas": [
+        { "link": "keiei", "label": "経営コースを見る", "sub": "代表による個別相談・事業計画策定のサポート付き", "style": "primary" },
+        { "link": "line", "label": "7日間無料体験をはじめる", "sub": "公式LINEから無料講義をお試しいただけます", "style": "secondary" }
+      ]
+    }
+  },
+
+  "result": {
+    "label": "あなたの学びタイプは…",
+    "areasTitle": "あなたの伸びしろ分野",
+    "coursesTitle": "あなたにおすすめの講義",
+    "adviceTitle": "学び方のアドバイス",
+    "nextTitle": "次の一歩",
+    "shareTitle": "結果をシェアする",
+    "shareNote": "シェアされるのはタイプ名とキャッチコピーだけです。回答内容は含まれません。",
+    "retry": "もう一度診断する"
+  },
+
+  "sharePage": {
+    "label": "福祉経営 学びタイプ診断",
+    "cta": "あなたも診断する",
+    "ctaNote": "約2分・回答は保存されません",
+    "allTypesTitle": "診断でわかる9つのタイプ"
+  }
+}

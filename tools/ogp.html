@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<!-- tools/build.js が OGP 画像を作るときに使うページです（公開サイトからはリンクしていません） -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap">
+<script src="../js/card.js"></script>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+window.renderOgp = async function (opts) {
+  const [mascot, logo] = await Promise.all([
+    FukumanaCard.loadImage('../assets/fukuneko.png'),
+    FukumanaCard.loadImage('../assets/logo.png')
+  ]);
+  await FukumanaCard.waitFonts(Object.values(opts).join(''));
+  const canvas = document.getElementById('c');
+  FukumanaCard.draw(canvas, Object.assign({ layout: 'ogp', mascot, logo }, opts));
+  return canvas.toDataURL('image/png');
+};
+</script>
+</body>
+</html>

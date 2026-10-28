@@ -1,0 +1,16 @@
+{
+  "name": "fukumana-shindan",
+  "version": "1.0.0",
+  "private": true,
+  "description": "フクマナ 福祉経営 学びタイプ診断（静的サイト）",
+  "scripts": {
+    "build": "node tools/build.js",
+    "test": "node tools/test.js",
+    "e2e": "node tools/e2e.js",
+    "serve": "node tools/serve.js"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0",
+    "qrcode": "1.5.4"
+  }
+}
