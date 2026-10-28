@@ -176,13 +176,14 @@
     canvas.width = W;
     canvas.height = H;
     var ctx = canvas.getContext('2d');
-    var color = opts.color || THEME.brand;
+    var color = opts.color || THEME.brand;     // 文字・帯（濃い色）
+    var accent = opts.accent || color;         // 飾り（明るい色）
 
     // 背景
     ctx.fillStyle = THEME.bg;
     ctx.fillRect(0, 0, W, H);
-    ctx.fillStyle = color;
-    ctx.globalAlpha = 0.12;
+    ctx.fillStyle = accent;
+    ctx.globalAlpha = 0.18;
     ctx.beginPath(); ctx.arc(W - 60, 60, square ? 260 : 200, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(40, H - 20, square ? 200 : 140, 0, Math.PI * 2); ctx.fill();
     ctx.globalAlpha = 1;
@@ -229,32 +230,52 @@
     var mascotY = H - m - mascotSize - (square ? 24 : 16);
     drawImageContain(ctx, opts.mascot, mascotX, mascotY, mascotSize, mascotSize);
 
-    var y = m + bandH + (square ? 64 : 40);
+    var y = m + bandH + (square ? 52 : 40);
     var textW = square ? contentW : contentW - mascotSize + 40;
 
-    if (opts.label) {
-      ctx.font = '500 ' + (square ? 40 : 30) + 'px ' + FONT;
+    // OGP はグループ名があれば小見出しの代わりに使う（高さが限られるため）
+    if (opts.label && (square || !opts.group)) {
+      ctx.font = '500 ' + (square ? 38 : 30) + 'px ' + FONT;
       ctx.fillStyle = THEME.sub;
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
       ctx.fillText(opts.label, left, y);
-      y += square ? 70 : 50;
+      y += square ? 58 : 50;
+    }
+
+    // グループ名（タイプ名の上に小さく）
+    if (opts.group) {
+      var gs = square ? 32 : 26;
+      var gh = gs + (square ? 22 : 16);
+      ctx.font = '700 ' + gs + 'px ' + FONT;
+      var gw = ctx.measureText(opts.group).width + gh;
+      roundRect(ctx, left, y, gw, gh, gh / 2);
+      ctx.fillStyle = accent;
+      ctx.globalAlpha = 0.1; // 文字とのコントラスト4.5以上を保つ薄さ
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = accent;
+      ctx.stroke();
+      ctx.fillStyle = color;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(opts.group, left + gh / 2, y + gh / 2 + 1);
+      y += gh + (square ? 16 : 12);
     }
 
     if (opts.name) {
-      var nameFit = fitText(ctx, opts.name, textW, square ? 88 : 68, 48, 2, '700');
+      var nameFit = fitText(ctx, opts.name, textW, square ? 80 : 64, 46, 2, '700');
       y = drawLines(ctx, nameFit, left, y, 1.3, color, '700');
-      // 下線
-      ctx.fillStyle = color;
-      ctx.globalAlpha = 0.25;
-      ctx.fillRect(left, y + 8, square ? 160 : 120, 10);
-      ctx.globalAlpha = 1;
-      y += square ? 56 : 36;
+      // 区切り線
+      ctx.fillStyle = accent;
+      ctx.fillRect(left, y + 6, square ? 160 : 120, square ? 10 : 8);
+      y += square ? 50 : 34;
     }
 
     if (opts.catch) {
       var catchW = square ? contentW - mascotSize * 0.66 : textW;
-      var catchFit = fitText(ctx, opts.catch, catchW, square ? 50 : 38, 30, 3, '500');
+      var catchFit = fitText(ctx, opts.catch, catchW, square ? 46 : 36, 30, 3, '500');
       y = drawLines(ctx, catchFit, left, y, 1.55, THEME.text, '500');
     }
 

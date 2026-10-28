@@ -79,7 +79,18 @@
     render();
   });
 
+  // ヘッダーのロゴ：トップは「福祉経営を学ぶなら フクマナ」、設問・結果は「フクマナ」のみ
+  function setHeaderLogo(isTop) {
+    var logo = document.querySelector('.site-header__logo');
+    if (!logo) return;
+    var file = isTop ? C.images.logoTop : C.images.logo;
+    if (logo.getAttribute('src') !== img(file)) logo.setAttribute('src', img(file));
+    logo.setAttribute('alt', isTop ? '福祉経営を学ぶなら フクマナ' : 'フクマナ');
+    logo.classList.toggle('site-header__logo--simple', !isTop);
+  }
+
   function render() {
+    setHeaderLogo(!state.started);
     if (!state.started) return renderTop();
     if (state.picks.length >= totalSteps()) return renderResult();
     return renderQuestion();
@@ -242,10 +253,11 @@
 
     app.innerHTML = '';
     app.appendChild(el(
-      '<section class="screen screen--result" style="--type-color:' + esc(type.color) + '" data-type="' + esc(r.typeId) + '">' +
+      '<section class="screen screen--result" style="--type-color:' + esc(type.color) + ';--type-accent:' + esc(type.accent) + '" data-type="' + esc(r.typeId) + '" data-group="' + esc(type.group) + '">' +
         '<div class="result-hero">' +
           '<p class="result-hero__label">' + esc(R.label) + '</p>' +
           '<img class="mascot mascot--result" src="' + esc(img(type.mascot)) + '" alt="' + MASCOT_ALT + '" width="180" height="180">' +
+          '<p class="group-label">' + esc(C.groups[type.group].name) + '</p>' +
           '<h1 class="result-hero__name" tabindex="-1" data-focus>' + esc(type.name) + '</h1>' +
           '<p class="result-hero__catch">' + esc(type.catch) + '</p>' +
           '<p class="result-hero__desc">' + esc(D.fill(r.description, field)) + '</p>' +
@@ -328,7 +340,7 @@
 
   // ---------- 結果画像 ----------
   function makeImage(typeId, type) {
-    var text = C.site.shortTitle + type.name + type.catch + 'わたしの学びタイプはあなたも約2分で診断できます' + displayUrl(baseUrl()) + '#フクマナ福祉経営';
+    var text = C.site.shortTitle + C.groups[type.group].name + type.name + type.catch + 'わたしの学びタイプはあなたも約2分で診断できます' + displayUrl(baseUrl()) + '#フクマナ福祉経営';
     return Promise.all([
       Card.loadImage(img(type.mascot)),
       Card.loadImage(img(C.images.logo)),
@@ -339,9 +351,11 @@
         layout: 'square',
         title: C.site.shortTitle,
         label: 'わたしの学びタイプは',
+        group: C.groups[type.group].name,
         name: type.name,
         catch: type.catch,
         color: type.color,
+        accent: type.accent,
         url: displayUrl(baseUrl()),
         footer: 'あなたも約2分で診断できます',
         hashtags: C.site.hashtags.map(function (h) { return '#' + h; }).join(' '),

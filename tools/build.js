@@ -59,8 +59,15 @@ function footerHtml() {
 </footer>`;
 }
 
-function logoTag(prefix) {
-  return `<img src="${prefix}${esc(C.images.logo)}" alt="福祉経営を学ぶなら フクマナ" class="site-header__logo">`;
+// top=true：「福祉経営を学ぶなら フクマナ」（トップ画面）、false：「フクマナ」のみ（設問・結果）
+function logoTag(prefix, top) {
+  return top
+    ? `<img src="${prefix}${esc(C.images.logoTop)}" alt="福祉経営を学ぶなら フクマナ" class="site-header__logo">`
+    : `<img src="${prefix}${esc(C.images.logo)}" alt="フクマナ" class="site-header__logo site-header__logo--simple">`;
+}
+
+function groupIds() {
+  return Object.keys(C.groups).filter((k) => !k.startsWith('_'));
 }
 
 // ---------- index.html の OGP ----------
@@ -76,7 +83,7 @@ function buildIndex() {
   const re = /(<!-- OGP:START[^>]*-->\n)[\s\S]*?(\n<!-- OGP:END -->)/;
   if (!re.test(html)) throw new Error('index.html に OGP:START / OGP:END の目印が見つかりません');
   const header = `  <a class="site-header__brand" href="${esc(C.links.top)}" target="_blank" rel="noopener">
-    ${logoTag('assets/')}
+    ${logoTag('assets/', true)}
   </a>`;
   const reHeader = /(<!-- HEADER:START[^>]*-->\n)[\s\S]*?(\n<!-- HEADER:END -->)/;
   if (!reHeader.test(html)) throw new Error('index.html に HEADER:START / HEADER:END の目印が見つかりません');
@@ -88,9 +95,20 @@ function buildTypePage(id) {
   const t = C.types[id];
   const S = C.sharePage;
   const desc = D.fill(t.description, D.GENERIC_FIELD);
-  const others = Object.keys(C.types).map((k) =>
-    `<li><a href="${esc(k)}.html"${k === id ? ' aria-current="page"' : ''}>${esc(C.types[k].name)}</a></li>`
-  ).join('\n        ');
+  const g = C.groups[t.group];
+  // 「診断でわかる9つのタイプ」をグループごとに色分けして表示
+  const others = groupIds().map((gid) => {
+    const grp = C.groups[gid];
+    const items = Object.keys(C.types).filter((k) => C.types[k].group === gid).map((k) =>
+      `<li><a href="${esc(k)}.html" style="--type-color:${esc(C.types[k].color)};--type-accent:${esc(C.types[k].accent)}"${k === id ? ' aria-current="page"' : ''}>${esc(C.types[k].name)}</a></li>`
+    ).join('\n            ');
+    return `<div class="type-group" style="--group-color:${esc(grp.color)};--group-accent:${esc(grp.accent)}">
+          <h3 class="type-group__name">${esc(grp.name)}</h3>
+          <ul class="types-list">
+            ${items}
+          </ul>
+        </div>`;
+  }).join('\n        ');
 
   const html = `<!doctype html>
 <html lang="ja">
@@ -114,15 +132,16 @@ ${ogpTags({
 <body>
 <header class="site-header">
   <a class="site-header__brand" href="${esc(C.links.top)}" target="_blank" rel="noopener">
-    ${logoTag('../assets/')}
+    ${logoTag('../assets/', false)}
   </a>
 </header>
 
 <main class="container">
-  <section class="screen screen--result" style="--type-color:${esc(t.color)}" data-type="${esc(id)}">
+  <section class="screen screen--result" style="--type-color:${esc(t.color)};--type-accent:${esc(t.accent)}" data-type="${esc(id)}" data-group="${esc(t.group)}">
     <div class="result-hero">
       <p class="result-hero__label">${esc(S.label)}</p>
       <img class="mascot mascot--result" src="../assets/${esc(t.mascot)}" alt="フクマナ公式キャラクター フクノネコ" width="180" height="180">
+      <p class="group-label">${esc(g.name)}</p>
       <h1 class="result-hero__name">${esc(t.name)}</h1>
       <p class="result-hero__catch">${esc(t.catch)}</p>
       <p class="result-hero__desc">${esc(desc)}</p>
@@ -135,9 +154,9 @@ ${ogpTags({
 
     <div class="block">
       <h2 class="block__title">${esc(S.allTypesTitle.replace(/\d+/, String(Object.keys(C.types).length)))}</h2>
-      <ul class="types-list">
+      <div class="type-groups">
         ${others}
-      </ul>
+      </div>
     </div>
   </section>
 </main>
@@ -176,7 +195,7 @@ async function buildOgpImages() {
     await page.goto(base + 'tools/ogp.html');
     const jobs = [{ id: 'top', opts: { title: C.site.shortTitle, label: 'あなたに合った学び方がわかる', name: C.site.shortTitle, catch: '約2分・無料。おすすめの講義と次の一歩をご提案します。', mascot: C.images.ogpTop } }];
     for (const [id, t] of Object.entries(C.types)) {
-      jobs.push({ id, opts: { title: C.site.shortTitle, label: '学びタイプ', name: t.name, catch: t.catch, color: t.color, mascot: t.mascot } });
+      jobs.push({ id, opts: { title: C.site.shortTitle, label: '学びタイプ', group: C.groups[t.group].name, name: t.name, catch: t.catch, color: t.color, accent: t.accent, mascot: t.mascot } });
     }
     for (const job of jobs) {
       const dataUrl = await page.evaluate((opts) => window.renderOgp(opts), { ...job.opts, logo: C.images.logo });

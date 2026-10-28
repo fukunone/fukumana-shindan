@@ -151,6 +151,10 @@ async function layoutReport(page) {
       const a = answersFor(typeId);
       await runFlow(page, base, { fieldIndex: fi++ % 4, ...a });
       const name = await page.textContent('.result-hero__name');
+      const group = await page.textContent('.group-label');
+      check(group === C.groups[C.types[typeId].group].name, `  グループ名：${group}`);
+      const logo = await page.getAttribute('.site-header__logo', 'src');
+      check(logo === 'assets/' + C.images.logo, `  結果画面のヘッダーロゴ：${logo}`);
       const mascot = await page.$eval('.mascot--result', (i) => [i.getAttribute('src'), i.naturalWidth]);
       check(mascot[0] === 'assets/' + C.types[typeId].mascot && mascot[1] > 0, `  フクノネコ：${mascot[0]}`);
       const ctas = await page.$$eval('[data-cta]', (els) => els.map((e) => e.getAttribute('href')));
@@ -166,9 +170,12 @@ async function layoutReport(page) {
   {
     const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
     await page.goto(base + 'index.html?field=hoiku');
+    await page.waitForSelector('#start');
+    check((await page.getAttribute('.site-header__logo', 'src')) === 'assets/' + C.images.logoTop, 'トップ画面のヘッダーは「福祉経営を学ぶなら フクマナ」のロゴ');
     await page.click('#start');
     const q = await page.textContent('.question');
     const note = await page.locator('.option__sub').nth(0).textContent();
+    check((await page.getAttribute('.site-header__logo', 'src')) === 'assets/' + C.images.logo, '設問画面のヘッダーは「フクマナ」のみのロゴ');
     const roleImg = await page.$eval('.mascot--question', (i) => i.getAttribute('src'));
     check(roleImg === 'assets/' + C.images.basicQuestion, `立場の質問のフクノネコ：${roleImg}`);
     check(q === C.roleQuestion.text && note.includes('保育士'), `Q1（分野）をスキップし、立場の質問から開始（${note}）`);
@@ -300,8 +307,14 @@ async function layoutReport(page) {
         title: document.title,
         image: document.querySelector('meta[property="og:image"]').content,
         name: document.querySelector('h1').textContent,
-        ctaHref: document.querySelector('.shared-cta a').href
+        ctaHref: document.querySelector('.shared-cta a').href,
+        groups: Array.from(document.querySelectorAll('.type-group')).map((g) => [g.querySelector('.type-group__name').textContent, g.querySelectorAll('li').length]),
+        logo: document.querySelector('.site-header__logo').getAttribute('src')
       }));
+      const expectedGroups = Object.entries(C.groups).filter(([k]) => !k.startsWith('_'))
+        .map(([k, g]) => [g.name, Object.values(C.types).filter((t) => t.group === k).length]);
+      check(JSON.stringify(meta.groups) === JSON.stringify(expectedGroups) && meta.logo === '../assets/' + C.images.logo,
+        `r/${id}.html：タイプ一覧が4グループ（${meta.groups.map((g) => g.join(':')).join('／')}）・ロゴ`);
       check(res.ok() && meta.name === C.types[id].name && meta.image.endsWith(`/assets/ogp/${id}.png`) && meta.ctaHref === base,
         `r/${id}.html：「${meta.title}」・あなたも診断するボタン`);
     }
