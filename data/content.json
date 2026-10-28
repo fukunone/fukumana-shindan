@@ -12,11 +12,21 @@
 
   "images": {
     "_説明": "画像は assets/ に置き、ここでファイル名を指定します。どの場面でどの画像を使うかの一覧は README.md の「画像の使い分け」を参照。",
-    "logo": "FUKUMANA_LOGO_FIX-02.png",
+    "logo": "FUKUMANA_LOGO_FIX-03.png",
+    "logoTop": "FUKUMANA_LOGO_FIX-02.png",
+    "icon": "FUKUMANA_ICON-02.png",
     "top": "Fukunoneko_08.png",
     "basicQuestion": "Fukunoneko_01.png",
     "question": "Fukunoneko_03.png",
     "ogpTop": "Fukunoneko_08.png"
+  },
+
+  "groups": {
+    "_説明": "9タイプを立場ごとに4グループに分けます。color は文字・帯に使う濃い色（白とのコントラスト4.5以上）、accent はタグ・区切り線などの飾りに使う明るい色です。",
+    "genba": { "name": "現場で輝くグループ", "role": "A", "color": "#c2410c", "accent": "#f97316" },
+    "team":  { "name": "チームをつなぐグループ", "role": "B", "color": "#6b21a8", "accent": "#a855f7" },
+    "hojin": { "name": "法人を導くグループ", "role": "C", "color": "#1e3a8a", "accent": "#3b6fd8" },
+    "mirai": { "name": "未来をひらくグループ", "role": "D", "color": "#8a6500", "accent": "#e3b23c" }
   },
 
   "links": {
@@ -396,23 +406,27 @@
 
   "types": {
     "leader": {
+      "group": "genba",
       "role": "A",
       "name": "現場リーダー候補タイプ",
       "catch": "現場の声を、チームの力に変えていく人。",
       "description": "{staff}として積み重ねてきた経験は、チームをまとめるときの大きな土台になります。「人を育てる」「職場の仕組みを知る」視点を少し足すだけで、頼られるリーダーへの道がぐっと近づきます。",
-      "color": "#00747c",
+      "color": "#c2410c",
+      "accent": "#f97316",
       "mascot": "Fukunoneko_07.png",
       "ctas": [
         { "link": "line", "label": "7日間無料体験をはじめる", "sub": "公式LINEから無料講義をお試しいただけます", "style": "primary" }
       ]
     },
     "future-owner": {
+      "group": "genba",
       "role": "A",
       "name": "未来の経営者タイプ",
       "catch": "現場の経験を、未来の事業の種にする人。",
       "description": "いつか自分で開業したいという思いは、大切な原動力です。現場を知っている強みに、お金の流れや開業の進め方の知識を重ねれば、思い描く事業がより具体的になっていきます。",
       "mustInclude": ["kaigyo", "finance"],
-      "color": "#005660",
+      "color": "#9a3412",
+      "accent": "#ea7a3c",
       "mascot": "Fukunoneko_09.png",
       "ctas": [
         { "link": "line", "label": "7日間無料体験をはじめる", "sub": "公式LINEから無料講義をお試しいただけます", "style": "primary" },
@@ -420,22 +434,26 @@
       ]
     },
     "professional": {
+      "group": "genba",
       "role": "A",
       "name": "現場のプロフェッショナルタイプ",
       "catch": "目の前の一人ひとりに、まっすぐ向き合う人。",
       "description": "現場を極めたいという姿勢は、{place}にとって何よりの財産です。職場の運営や働くルールの仕組みを知ると、日々の工夫に自信と説得力が加わります。",
-      "color": "#1b7a5a",
+      "color": "#b45309",
+      "accent": "#f59e0b",
       "mascot": "Fukunoneko_06.png",
       "ctas": [
         { "link": "line", "label": "7日間無料体験をはじめる", "sub": "公式LINEから無料講義をお試しいただけます", "style": "primary" }
       ]
     },
     "core": {
+      "group": "team",
       "role": "B",
       "name": "チームを育てる中核人財タイプ",
       "catch": "人が育つ職場を、まんなかで支える人。",
       "description": "職員一人ひとりに目を配り、チームを前に進めようとしているあなた。育成・評価・配置の考え方を体系的に学ぶと、日々の判断に軸が生まれ、チーム全体の力がさらに伸びていきます。",
-      "color": "#1b7a5a",
+      "color": "#8b3fbf",
+      "accent": "#c084fc",
       "mascot": "Fukunoneko_08.png",
       "ctas": [
         { "link": "line", "label": "7日間無料体験をはじめる", "sub": "公式LINEから無料講義をお試しいただけます", "style": "primary" },
@@ -443,11 +461,13 @@
       ]
     },
     "manager": {
+      "group": "team",
       "role": "B",
       "name": "経営視点を磨くマネージャータイプ",
       "catch": "現場と経営を、数字でつなぐ人。",
       "description": "現場をよく知るあなたが経営の数字を読めるようになると、提案や説明の説得力が大きく変わります。決算書や事業の収支を理解することは、職員と法人の両方を守る力になります。",
-      "color": "#1d6496",
+      "color": "#5b2a86",
+      "accent": "#9b6dc6",
       "mascot": "Fukunoneko_04.png",
       "ctas": [
         { "link": "line", "label": "7日間無料体験をはじめる", "sub": "公式LINEから無料講義をお試しいただけます", "style": "primary" },
@@ -455,11 +475,13 @@
       ]
     },
     "exec-people": {
+      "group": "hojin",
       "role": "C",
       "name": "組織を育てる経営者タイプ",
       "catch": "人を育て、次の世代へつなぐ経営者。",
       "description": "法人の未来を担う人材づくりに目を向けているあなた。育成・評価・配置の考え方を組織で共有できると幹部が育ち、経営者が本来の仕事に集中できる体制に近づきます。",
-      "color": "#1b7a5a",
+      "color": "#2c4f9e",
+      "accent": "#6b8fe0",
       "mascot": "Fukunoneko_01.png",
       "ctas": [
         { "link": "company", "label": "法人プランの資料請求・個別質問会", "sub": "法人様限定で5ID以上の一括申込に特典あり", "style": "primary" },
@@ -467,11 +489,13 @@
       ]
     },
     "exec-finance": {
+      "group": "hojin",
       "role": "C",
       "name": "経営基盤を固める経営者タイプ",
       "catch": "数字と信頼で、法人の土台を固める経営者。",
       "description": "経営状況を数字でつかみ、金融機関とも上手に付き合える力は、安定した法人運営の土台です。本業の収支を見える化して職員と共有することで、組織の一体感も高まります。",
-      "color": "#1d6496",
+      "color": "#16285c",
+      "accent": "#4a64a3",
       "mascot": "Fukunoneko_03.png",
       "ctas": [
         { "link": "company", "label": "法人プランの資料請求・個別質問会", "sub": "法人様限定で5ID以上の一括申込に特典あり", "style": "primary" },
@@ -479,11 +503,13 @@
       ]
     },
     "exec-brand": {
+      "group": "hojin",
       "role": "C",
       "name": "選ばれる法人をつくる経営者タイプ",
       "catch": "利用者にも職員にも、選ばれる法人をつくる経営者。",
       "description": "人材確保や発信に目を向けていること自体が、大きな伸びしろです。法人の魅力を言葉にして届ける力を磨くと、採用にも利用者の確保にも良い流れが生まれます。",
-      "color": "#00747c",
+      "color": "#1e5aa8",
+      "accent": "#5aa0e6",
       "mascot": "Fukunoneko_05.png",
       "ctas": [
         { "link": "company", "label": "法人プランの資料請求・個別質問会", "sub": "法人様限定で5ID以上の一括申込に特典あり", "style": "primary" },
@@ -491,6 +517,7 @@
       ]
     },
     "kaigyo": {
+      "group": "mirai",
       "role": "D",
       "name": "開業準備タイプ",
       "catch": "想いを、事業のかたちにしていく人。",
@@ -501,7 +528,8 @@
         "mid": "数年後の開業に向けて、今から準備を始められるのは大きな強みです。経営の基礎を少しずつ学んでおくと、いざというときの判断がぐっと楽になります。",
         "undecided": "開業を考え始めた今が、学び始めのベストタイミング。経営の全体像を知っておくと、自分に合った開業の形や時期が見えてきます。"
       },
-      "color": "#005660",
+      "color": "#8a6500",
+      "accent": "#e3b23c",
       "mascot": "Fukunoneko_09.png",
       "ctas": [
         { "link": "keiei", "label": "経営コースを見る", "sub": "代表による個別相談・事業計画策定のサポート付き", "style": "primary" },

@@ -22,7 +22,7 @@ function validate(C, rootDir) {
     else if (!imageExists(file)) errors.push(`${where} の画像「assets/${file}」が見つかりません`);
   };
   Object.entries(C.images || {}).forEach(([k, v]) => { if (!k.startsWith('_')) checkImage(v, `images.${k}`); });
-  ['logo', 'top', 'basicQuestion', 'question', 'ogpTop'].forEach((k) => { if (!C.images || !C.images[k]) errors.push(`images.${k} がありません`); });
+  ['logo', 'logoTop', 'icon', 'top', 'basicQuestion', 'question', 'ogpTop'].forEach((k) => { if (!C.images || !C.images[k]) errors.push(`images.${k} がありません`); });
   const courseIds = Object.keys(C.courses || {});
   const typeIds = Object.keys(C.types || {});
 
@@ -58,9 +58,18 @@ function validate(C, rootDir) {
     ruleTypes.forEach((t) => { if (!typeIds.includes(t)) errors.push(`roles.${rid}.typeRule に未定義のタイプ「${t}」があります`); });
   }
 
+  for (const [gid, g] of Object.entries(C.groups || {})) {
+    if (gid.startsWith('_')) continue;
+    ['name', 'role', 'color', 'accent'].forEach((k) => { if (!g[k]) errors.push(`groups.${gid}.${k} が空です`); });
+    if (g.color && contrast(g.color, '#ffffff') < 4.5) errors.push(`groups.${gid}.color（${g.color}）は白とのコントラストが足りません（4.5以上が必要）`);
+  }
   for (const [tid, t] of Object.entries(C.types || {})) {
     if (!/^[a-z0-9-]+$/.test(tid)) errors.push(`タイプID「${tid}」は半角英小文字・数字・ハイフンのみにしてください（結果ページのURLになります）`);
     checkImage(t.mascot, `types.${tid}.mascot`);
+    const g = C.groups && C.groups[t.group];
+    if (!g || t.group.startsWith('_')) errors.push(`types.${tid}.group「${t.group}」が groups にありません`);
+    else if (g.role !== t.role) errors.push(`types.${tid} の立場（${t.role}）とグループ「${g.name}」の立場（${g.role}）が違います`);
+    if (!/^#[0-9a-f]{6}$/i.test(t.accent || '')) errors.push(`types.${tid}.accent は #から始まる6桁の色コードにしてください`);
     if (t.color && contrast(t.color, '#ffffff') < 4.5) errors.push(`types.${tid}.color（${t.color}）は白とのコントラストが足りません（4.5以上が必要）`);
     ['name', 'catch', 'description', 'color'].forEach((k) => { if (!t[k]) errors.push(`types.${tid}.${k} が空です`); });
     if (!C.roles[t.role]) errors.push(`types.${tid}.role「${t.role}」が不正です`);

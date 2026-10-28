@@ -10,13 +10,13 @@
 <canvas id="c"></canvas>
 <script>
 window.renderOgp = async function (opts) {
-  const [mascot, logo] = await Promise.all([
+  const [mascot, icon] = await Promise.all([
     FukumanaCard.loadImage('../assets/' + opts.mascot),
-    FukumanaCard.loadImage('../assets/' + opts.logo)
+    FukumanaCard.loadImage('../assets/' + opts.icon)
   ]);
   await FukumanaCard.waitFonts(Object.values(opts).join(''));
   const canvas = document.getElementById('c');
-  FukumanaCard.draw(canvas, Object.assign({ layout: 'ogp' }, opts, { mascot, logo }));
+  FukumanaCard.draw(canvas, Object.assign({ layout: 'ogp' }, opts, { mascot, icon }));
   return canvas.toDataURL('image/png');
 };
 </script>

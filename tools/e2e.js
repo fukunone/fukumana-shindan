@@ -151,6 +151,10 @@ async function layoutReport(page) {
       const a = answersFor(typeId);
       await runFlow(page, base, { fieldIndex: fi++ % 4, ...a });
       const name = await page.textContent('.result-hero__name');
+      const groupShown = await page.evaluate((n) => document.body.textContent.includes(n), C.groups[C.types[typeId].group].name);
+      check(!groupShown, '  グループ名のラベルは表示しない');
+      const logo = await page.getAttribute('.site-header__logo', 'src');
+      check(logo === 'assets/' + C.images.logo, `  結果画面のヘッダーロゴ：${logo}`);
       const mascot = await page.$eval('.mascot--result', (i) => [i.getAttribute('src'), i.naturalWidth]);
       check(mascot[0] === 'assets/' + C.types[typeId].mascot && mascot[1] > 0, `  フクノネコ：${mascot[0]}`);
       const ctas = await page.$$eval('[data-cta]', (els) => els.map((e) => e.getAttribute('href')));
@@ -166,9 +170,12 @@ async function layoutReport(page) {
   {
     const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
     await page.goto(base + 'index.html?field=hoiku');
+    await page.waitForSelector('#start');
+    check((await page.getAttribute('.site-header__logo', 'src')) === 'assets/' + C.images.logoTop, 'トップ画面のヘッダーは「福祉経営を学ぶなら フクマナ」のロゴ');
     await page.click('#start');
     const q = await page.textContent('.question');
     const note = await page.locator('.option__sub').nth(0).textContent();
+    check((await page.getAttribute('.site-header__logo', 'src')) === 'assets/' + C.images.logo, '設問画面のヘッダーは「フクマナ」のみのロゴ');
     const roleImg = await page.$eval('.mascot--question', (i) => i.getAttribute('src'));
     check(roleImg === 'assets/' + C.images.basicQuestion, `立場の質問のフクノネコ：${roleImg}`);
     check(q === C.roleQuestion.text && note.includes('保育士'), `Q1（分野）をスキップし、立場の質問から開始（${note}）`);
@@ -300,8 +307,19 @@ async function layoutReport(page) {
         title: document.title,
         image: document.querySelector('meta[property="og:image"]').content,
         name: document.querySelector('h1').textContent,
-        ctaHref: document.querySelector('.shared-cta a').href
+        ctaHref: document.querySelector('.shared-cta a').href,
+        groups: Array.from(document.querySelectorAll('.type-group')).map((g) => [g.dataset.group, g.querySelectorAll('li').length]),
+        headings: document.querySelectorAll('.type-group h3, .type-group__name').length,
+        gap: parseFloat(getComputedStyle(document.querySelector('.type-groups')).rowGap),
+        colors: Array.from(document.querySelectorAll('.type-group')).map((g) => Array.from(g.querySelectorAll('a')).map((a) => getComputedStyle(a).color)),
+        logo: document.querySelector('.site-header__logo').getAttribute('src')
       }));
+      const groupList = Object.entries(C.groups).filter(([k]) => !k.startsWith('_'));
+      const expectedGroups = groupList.map(([k]) => [k, Object.values(C.types).filter((t) => t.group === k).length]);
+      const rgb = (hex) => `rgb(${[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(', ')})`;
+      const colorsOk = meta.colors.every((cs, i) => cs.every((c) => c === rgb(groupList[i][1].color)));
+      check(JSON.stringify(meta.groups) === JSON.stringify(expectedGroups) && meta.headings === 0 && meta.gap > 8 && colorsOk && meta.logo === '../assets/' + C.images.logo,
+        `r/${id}.html：タイプ一覧をグループごとに並べ（${meta.groups.map((g) => g.join(':')).join('／')}・間隔${meta.gap}px・見出しなし）、グループ色で表示`);
       check(res.ok() && meta.name === C.types[id].name && meta.image.endsWith(`/assets/ogp/${id}.png`) && meta.ctaHref === base,
         `r/${id}.html：「${meta.title}」・あなたも診断するボタン`);
     }

@@ -25,12 +25,12 @@
 <body>
 <header class="site-header">
   <a class="site-header__brand" href="https://wwmc.fukunone.org/" target="_blank" rel="noopener">
-    <img src="../assets/FUKUMANA_LOGO_FIX-02.png" alt="福祉経営を学ぶなら フクマナ" class="site-header__logo">
+    <img src="../assets/FUKUMANA_LOGO_FIX-03.png" alt="フクマナ" class="site-header__logo site-header__logo--simple">
   </a>
 </header>
 
 <main class="container">
-  <section class="screen screen--result" style="--type-color:#005660" data-type="future-owner">
+  <section class="screen screen--result" style="--type-color:#9a3412;--type-accent:#ea7a3c" data-type="future-owner" data-group="genba">
     <div class="result-hero">
       <p class="result-hero__label">福祉経営 学びタイプ診断</p>
       <img class="mascot mascot--result" src="../assets/Fukunoneko_09.png" alt="フクマナ公式キャラクター フクノネコ" width="180" height="180">
@@ -46,17 +46,33 @@
 
     <div class="block">
       <h2 class="block__title">診断でわかる9つのタイプ</h2>
-      <ul class="types-list">
-        <li><a href="leader.html">現場リーダー候補タイプ</a></li>
-        <li><a href="future-owner.html" aria-current="page">未来の経営者タイプ</a></li>
-        <li><a href="professional.html">現場のプロフェッショナルタイプ</a></li>
-        <li><a href="core.html">チームを育てる中核人財タイプ</a></li>
-        <li><a href="manager.html">経営視点を磨くマネージャータイプ</a></li>
-        <li><a href="exec-people.html">組織を育てる経営者タイプ</a></li>
-        <li><a href="exec-finance.html">経営基盤を固める経営者タイプ</a></li>
-        <li><a href="exec-brand.html">選ばれる法人をつくる経営者タイプ</a></li>
-        <li><a href="kaigyo.html">開業準備タイプ</a></li>
-      </ul>
+      <div class="type-groups">
+        <div class="type-group" data-group="genba">
+          <ul class="types-list">
+            <li><a href="leader.html" style="--type-color:#c2410c;--type-accent:#f97316">現場リーダー候補タイプ</a></li>
+            <li><a href="future-owner.html" style="--type-color:#c2410c;--type-accent:#f97316" aria-current="page">未来の経営者タイプ</a></li>
+            <li><a href="professional.html" style="--type-color:#c2410c;--type-accent:#f97316">現場のプロフェッショナルタイプ</a></li>
+          </ul>
+        </div>
+        <div class="type-group" data-group="team">
+          <ul class="types-list">
+            <li><a href="core.html" style="--type-color:#6b21a8;--type-accent:#a855f7">チームを育てる中核人財タイプ</a></li>
+            <li><a href="manager.html" style="--type-color:#6b21a8;--type-accent:#a855f7">経営視点を磨くマネージャータイプ</a></li>
+          </ul>
+        </div>
+        <div class="type-group" data-group="hojin">
+          <ul class="types-list">
+            <li><a href="exec-people.html" style="--type-color:#1e3a8a;--type-accent:#3b6fd8">組織を育てる経営者タイプ</a></li>
+            <li><a href="exec-finance.html" style="--type-color:#1e3a8a;--type-accent:#3b6fd8">経営基盤を固める経営者タイプ</a></li>
+            <li><a href="exec-brand.html" style="--type-color:#1e3a8a;--type-accent:#3b6fd8">選ばれる法人をつくる経営者タイプ</a></li>
+          </ul>
+        </div>
+        <div class="type-group" data-group="mirai">
+          <ul class="types-list">
+            <li><a href="kaigyo.html" style="--type-color:#8a6500;--type-accent:#e3b23c">開業準備タイプ</a></li>
+          </ul>
+        </div>
+      </div>
     </div>
   </section>
 </main>

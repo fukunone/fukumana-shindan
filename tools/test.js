@@ -152,6 +152,16 @@ console.log('\n[5] 配色のコントラスト（文字 4.5 以上）');
   });
   const r = contrast('#ffffff', v.brand);
   check(r >= 4.5, `メインボタン 白文字／${v.brand} ${r.toFixed(2)}`);
+  for (const [id, g] of Object.entries(C.groups).filter(([k]) => !k.startsWith('_'))) {
+    const c = contrast(g.color, '#ffffff');
+    check(c >= 4.5, `グループ色 ${g.name}（${g.color}）／白 ${c.toFixed(2)}`);
+  }
+  // シェアページのタイプ一覧で表示中のタイプ：グループ色の文字／明るい色を10%混ぜた背景（css の .types-list a[aria-current]）
+  const tint = (hex, p) => '#' + [1, 3, 5].map((i) => Math.round(parseInt(hex.slice(i, i + 2), 16) * p + 255 * (1 - p)).toString(16).padStart(2, '0')).join('');
+  for (const g of Object.entries(C.groups).filter(([k]) => !k.startsWith('_')).map(([, v]) => v)) {
+    const c = contrast(g.color, tint(g.accent, 0.1));
+    check(c >= 4.5, `タイプ一覧（表示中）${g.name}（${g.color} / ${tint(g.accent, 0.1)}）${c.toFixed(2)}`);
+  }
   for (const [id, t] of Object.entries(C.types)) {
     const c = contrast(t.color, '#ffffff');
     check(c >= 4.5, `タイプ色 ${C.types[id].name}（${t.color}）／白 ${c.toFixed(2)}`);
