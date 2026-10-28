@@ -9,12 +9,13 @@
 
   var FONT = '"Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif';
 
+  // css/style.css の :root と同じ配色（ロゴ・フクノネコの色が基準）
   var THEME = {
-    bg: '#fff6e9',
+    bg: '#f1f9f8',
     card: '#ffffff',
-    text: '#3b3430',
-    sub: '#7a6c62',
-    brand: '#f08a3c'
+    text: '#1f3a3e',
+    sub: '#4b6468',
+    brand: '#005660'
   };
 
   // 行頭に置かない文字（簡易禁則）
@@ -43,6 +44,8 @@
       var ch = chars[i];
       if (ch === '\n') { lines.push(line.join('')); line = []; continue; }
       line.push(ch);
+      // 句読点は行末にぶら下げてよい（次の行の頭に来ないように）
+      if ('、。，．'.indexOf(ch) >= 0) continue;
       if (line.length > 1 && ctx.measureText(line.join('')).width > maxWidth) {
         // 行の後半で、いちばん自然な位置を探して改行する
         var best = line.length - 1, bestP = 999;
@@ -65,7 +68,14 @@
     var lines;
     for (var s = size; s >= minSize; s -= 2) {
       ctx.font = weight + ' ' + s + 'px ' + FONT;
-      lines = wrap(ctx, text, maxWidth);
+      lines = wrap(ctx, text, /[、。]/.test(text) ? maxWidth - s : maxWidth); // ぶら下げる句読点1文字分を空けておく
+      // 最終行が2文字以下（「人。」だけ等）になる組み方は避ける
+      var last = Array.from(lines[lines.length - 1] || '');
+      if (lines.length <= maxLines && (lines.length === 1 || last.length > 2)) return { size: s, lines: lines };
+    }
+    for (s = size; s >= minSize; s -= 2) {
+      ctx.font = weight + ' ' + s + 'px ' + FONT;
+      lines = wrap(ctx, text, /[、。]/.test(text) ? maxWidth - s : maxWidth); // ぶら下げる句読点1文字分を空けておく
       if (lines.length <= maxLines) return { size: s, lines: lines };
     }
     return { size: minSize, lines: lines.slice(0, maxLines) };
@@ -90,11 +100,44 @@
     return y + fit.lines.length * fit.size * lineHeight;
   }
 
-  function drawImageContain(ctx, img, x, y, w, h) {
-    if (!img || !img.naturalWidth) return;
-    var r = Math.min(w / img.naturalWidth, h / img.naturalHeight);
-    var dw = img.naturalWidth * r, dh = img.naturalHeight * r;
-    ctx.drawImage(img, x + (w - dw) / 2, y + (h - dh), dw, dh);
+  /** 画像の透明な余白を除いた範囲（{x, y, w, h}）を求める */
+  function trimBox(img) {
+    if (img.__box) return img.__box;
+    var box = { x: 0, y: 0, w: img.naturalWidth, h: img.naturalHeight };
+    try {
+      var c = document.createElement('canvas');
+      c.width = img.naturalWidth;
+      c.height = img.naturalHeight;
+      var cx = c.getContext('2d');
+      cx.drawImage(img, 0, 0);
+      var d = cx.getImageData(0, 0, c.width, c.height).data;
+      var minX = c.width, minY = c.height, maxX = -1, maxY = -1;
+      for (var y = 0; y < c.height; y++) {
+        for (var x = 0; x < c.width; x++) {
+          if (d[(y * c.width + x) * 4 + 3] > 8) {
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+          }
+        }
+      }
+      if (maxX >= 0) box = { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 };
+    } catch (e) { /* 読み取れない場合は画像全体を使う */ }
+    img.__box = box;
+    return box;
+  }
+
+  /** 余白を除いて、枠に収まるよう下揃えで描く。描いた範囲を返す */
+  function drawImageContain(ctx, img, x, y, w, h, align) {
+    if (!img || !img.naturalWidth) return null;
+    var b = trimBox(img);
+    var r = Math.min(w / b.w, h / b.h);
+    var dw = b.w * r, dh = b.h * r;
+    var dx = align === 'left' ? x : x + (w - dw) / 2;
+    var dy = align === 'left' ? y + (h - dh) / 2 : y + (h - dh);
+    ctx.drawImage(img, b.x, b.y, b.w, b.h, dx, dy, dw, dh);
+    return { w: dw, h: dh };
   }
 
   function loadImage(src) {
@@ -150,7 +193,7 @@
     ctx.fill();
 
     // 上部の帯
-    var bandH = square ? 110 : 80;
+    var bandH = square ? 124 : 96;
     ctx.save();
     roundRect(ctx, m, m, W - m * 2, H - m * 2, 40);
     ctx.clip();
@@ -164,13 +207,15 @@
 
     var headerX = left;
     if (opts.logo && opts.logo.naturalWidth) {
-      var lh = bandH - 40;
-      var lw = opts.logo.naturalWidth * (lh / opts.logo.naturalHeight);
-      roundRect(ctx, left - 12, m + 14, lw + 24, lh + 12, 14);
+      var lb = trimBox(opts.logo);
+      var lh = bandH - (square ? 36 : 28);
+      var lw = lb.w * (lh / lb.h);
+      var pp = square ? 14 : 10;
+      roundRect(ctx, left - pp, m + (bandH - lh) / 2 - pp / 2, lw + pp * 2, lh + pp, 12);
       ctx.fillStyle = '#ffffff';
       ctx.fill();
-      ctx.drawImage(opts.logo, left, m + 20, lw, lh);
-      headerX = left + lw + 32;
+      drawImageContain(ctx, opts.logo, left, m + (bandH - lh) / 2, lw, lh, 'left');
+      headerX = left + lw + pp + 24;
     }
     ctx.font = '700 ' + (square ? 40 : 32) + 'px ' + FONT;
     ctx.fillStyle = '#ffffff';
@@ -208,7 +253,7 @@
     }
 
     if (opts.catch) {
-      var catchW = square ? contentW - mascotSize * 0.45 : textW;
+      var catchW = square ? contentW - mascotSize * 0.66 : textW;
       var catchFit = fitText(ctx, opts.catch, catchW, square ? 50 : 38, 30, 3, '500');
       y = drawLines(ctx, catchFit, left, y, 1.55, THEME.text, '500');
     }

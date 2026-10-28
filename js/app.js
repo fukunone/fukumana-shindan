@@ -33,6 +33,8 @@
   }
   function baseUrl() { return new URL('./', location.href.split('#')[0]).href.split('?')[0]; }
   function displayUrl(u) { return u.replace(/^https?:\/\//, '').replace(/\/$/, ''); }
+  function img(file) { return 'assets/' + file; }
+  var MASCOT_ALT = 'フクマナ公式キャラクター フクノネコ';
 
   function presetField() {
     return presetFieldId ? D.findField(C, presetFieldId) : null;
@@ -95,7 +97,7 @@
     app.innerHTML = '';
     app.appendChild(el(
       '<section class="screen screen--top">' +
-        '<img class="mascot mascot--top" src="assets/fukuneko.png" alt="フクマナ公式キャラクター フクノネコ" width="240" height="240">' +
+        '<img class="mascot mascot--top" src="' + esc(img(C.images.top)) + '" alt="' + MASCOT_ALT + '" width="240" height="240">' +
         '<p class="eyebrow">' + esc(t.eyebrow) + '</p>' +
         '<h1 class="top-title" tabindex="-1" data-focus>' + t.title.split(' ').map(function (w) { return '<span class="nowrap">' + esc(w) + '</span>'; }).join(' ') + '</h1>' +
         '<p class="lead">' + esc(t.lead) + '</p>' +
@@ -123,12 +125,14 @@
       return {
         text: C.fieldQuestion.text,
         note: C.fieldQuestion.note,
+        mascot: C.images.basicQuestion,
         options: C.fields.map(function (f) { return { value: f.id, label: f.label }; })
       };
     }
     if (step === off) {
       return {
         text: C.roleQuestion.text,
+        mascot: C.images.basicQuestion,
         options: C.roleQuestion.options.map(function (o) {
           return { value: o.id, label: o.label, sub: field.roleNotes[o.id] };
         })
@@ -138,6 +142,7 @@
     return {
       text: D.fill(q.text, field),
       note: q.note ? D.fill(q.note, field) : '',
+      mascot: q.mascot || C.images.question,
       options: q.options.map(function (o, i) { return { value: i, label: D.fill(o.label, field) }; })
     };
   }
@@ -164,7 +169,10 @@
           '<div class="progress__bar" style="width:' + pct + '%"></div>' +
         '</div>' +
         '<p class="progress__text">Q' + (step + 1) + ' <span>/ ' + total + '</span></p>' +
-        '<h2 class="question" tabindex="-1" data-focus>' + esc(q.text) + '</h2>' +
+        '<div class="question-head">' +
+          '<img class="mascot mascot--question" src="' + esc(img(q.mascot)) + '" alt="" width="96" height="96">' +
+          '<h2 class="question" tabindex="-1" data-focus>' + esc(q.text) + '</h2>' +
+        '</div>' +
         (q.note ? '<p class="question__note">' + esc(q.note) + '</p>' : '') +
         '<ul class="options">' + opts + '</ul>' +
         '<button type="button" class="btn btn--ghost btn--back" id="back">← 戻る</button>' +
@@ -237,7 +245,7 @@
       '<section class="screen screen--result" style="--type-color:' + esc(type.color) + '" data-type="' + esc(r.typeId) + '">' +
         '<div class="result-hero">' +
           '<p class="result-hero__label">' + esc(R.label) + '</p>' +
-          '<img class="mascot mascot--result" src="assets/fukuneko.png" alt="" width="160" height="160">' +
+          '<img class="mascot mascot--result" src="' + esc(img(type.mascot)) + '" alt="' + MASCOT_ALT + '" width="180" height="180">' +
           '<h1 class="result-hero__name" tabindex="-1" data-focus>' + esc(type.name) + '</h1>' +
           '<p class="result-hero__catch">' + esc(type.catch) + '</p>' +
           '<p class="result-hero__desc">' + esc(D.fill(r.description, field)) + '</p>' +
@@ -322,8 +330,8 @@
   function makeImage(typeId, type) {
     var text = C.site.shortTitle + type.name + type.catch + 'わたしの学びタイプはあなたも約2分で診断できます' + displayUrl(baseUrl()) + '#フクマナ福祉経営';
     return Promise.all([
-      Card.loadImage('assets/fukuneko.png'),
-      Card.loadImage('assets/logo.png'),
+      Card.loadImage(img(type.mascot)),
+      Card.loadImage(img(C.images.logo)),
       Card.waitFonts(text)
     ]).then(function (res) {
       var canvas = document.createElement('canvas');
