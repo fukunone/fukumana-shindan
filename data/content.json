@@ -14,6 +14,7 @@
     "_説明": "画像は assets/ に置き、ここでファイル名を指定します。どの場面でどの画像を使うかの一覧は README.md の「画像の使い分け」を参照。",
     "logo": "FUKUMANA_LOGO_FIX-03.png",
     "logoTop": "FUKUMANA_LOGO_FIX-02.png",
+    "icon": "FUKUMANA_ICON-02.png",
     "top": "Fukunoneko_08.png",
     "basicQuestion": "Fukunoneko_01.png",
     "question": "Fukunoneko_03.png",

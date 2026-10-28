@@ -22,7 +22,7 @@ function validate(C, rootDir) {
     else if (!imageExists(file)) errors.push(`${where} の画像「assets/${file}」が見つかりません`);
   };
   Object.entries(C.images || {}).forEach(([k, v]) => { if (!k.startsWith('_')) checkImage(v, `images.${k}`); });
-  ['logo', 'logoTop', 'top', 'basicQuestion', 'question', 'ogpTop'].forEach((k) => { if (!C.images || !C.images[k]) errors.push(`images.${k} がありません`); });
+  ['logo', 'logoTop', 'icon', 'top', 'basicQuestion', 'question', 'ogpTop'].forEach((k) => { if (!C.images || !C.images[k]) errors.push(`images.${k} がありません`); });
   const courseIds = Object.keys(C.courses || {});
   const typeIds = Object.keys(C.types || {});
 

@@ -257,7 +257,6 @@
         '<div class="result-hero">' +
           '<p class="result-hero__label">' + esc(R.label) + '</p>' +
           '<img class="mascot mascot--result" src="' + esc(img(type.mascot)) + '" alt="' + MASCOT_ALT + '" width="180" height="180">' +
-          '<p class="group-label">' + esc(C.groups[type.group].name) + '</p>' +
           '<h1 class="result-hero__name" tabindex="-1" data-focus>' + esc(type.name) + '</h1>' +
           '<p class="result-hero__catch">' + esc(type.catch) + '</p>' +
           '<p class="result-hero__desc">' + esc(D.fill(r.description, field)) + '</p>' +
@@ -340,10 +339,10 @@
 
   // ---------- 結果画像 ----------
   function makeImage(typeId, type) {
-    var text = C.site.shortTitle + C.groups[type.group].name + type.name + type.catch + 'わたしの学びタイプはあなたも約2分で診断できます' + displayUrl(baseUrl()) + '#フクマナ福祉経営';
+    var text = C.site.shortTitle + type.name + type.catch + 'わたしの学びタイプはあなたも約2分で診断できます' + displayUrl(baseUrl()) + '#フクマナ福祉経営';
     return Promise.all([
       Card.loadImage(img(type.mascot)),
-      Card.loadImage(img(C.images.logo)),
+      Card.loadImage(img(C.images.icon)),
       Card.waitFonts(text)
     ]).then(function (res) {
       var canvas = document.createElement('canvas');
@@ -351,7 +350,6 @@
         layout: 'square',
         title: C.site.shortTitle,
         label: 'わたしの学びタイプは',
-        group: C.groups[type.group].name,
         name: type.name,
         catch: type.catch,
         color: type.color,
@@ -360,7 +358,7 @@
         footer: 'あなたも約2分で診断できます',
         hashtags: C.site.hashtags.map(function (h) { return '#' + h; }).join(' '),
         mascot: res[0],
-        logo: res[1]
+        icon: res[1]
       });
       return new Promise(function (resolve, reject) {
         canvas.toBlob(function (blob) {

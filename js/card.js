@@ -128,6 +128,50 @@
     return box;
   }
 
+  /** 白・透明以外（文字や図柄）が描かれている範囲。白い背景つきの画像の位置合わせに使う */
+  function inkBox(img) {
+    if (img.__ink) return img.__ink;
+    var box = trimBox(img);
+    try {
+      var c = document.createElement('canvas');
+      c.width = img.naturalWidth;
+      c.height = img.naturalHeight;
+      var cx = c.getContext('2d');
+      cx.drawImage(img, 0, 0);
+      var d = cx.getImageData(0, 0, c.width, c.height).data;
+      var minX = c.width, minY = c.height, maxX = -1, maxY = -1;
+      for (var y = 0; y < c.height; y++) {
+        for (var x = 0; x < c.width; x++) {
+          var i = (y * c.width + x) * 4;
+          if (d[i + 3] > 8 && (d[i] < 235 || d[i + 1] < 235 || d[i + 2] < 235)) {
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+          }
+        }
+      }
+      if (maxX >= 0) box = { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 };
+    } catch (e) { /* 読み取れない場合は余白を除いた範囲を使う */ }
+    img.__ink = box;
+    return box;
+  }
+
+  /**
+   * アイコンを、文字部分の左上が (x, y)・高さ inkH になるよう描く。
+   * 白い背景もそのまま描くが、clipPath（カードの形）の外には出さない。
+   */
+  function drawIcon(ctx, img, x, y, inkH, clipPath) {
+    var ink = inkBox(img);
+    var r = inkH / ink.h;
+    ctx.save();
+    clipPath();
+    ctx.clip();
+    ctx.drawImage(img, x - ink.x * r, y - ink.y * r, img.naturalWidth * r, img.naturalHeight * r);
+    ctx.restore();
+    return { inkW: ink.w * r, inkH: inkH };
+  }
+
   /** 余白を除いて、枠に収まるよう下揃えで描く。描いた範囲を返す */
   function drawImageContain(ctx, img, x, y, w, h, align) {
     if (!img || !img.naturalWidth) return null;
@@ -206,62 +250,43 @@
     var left = m + pad;
     var contentW = W - m * 2 - pad * 2;
 
-    var headerX = left;
-    if (opts.logo && opts.logo.naturalWidth) {
-      var lb = trimBox(opts.logo);
-      var lh = bandH - (square ? 36 : 28);
-      var lw = lb.w * (lh / lb.h);
-      var pp = square ? 14 : 10;
-      roundRect(ctx, left - pp, m + (bandH - lh) / 2 - pp / 2, lw + pp * 2, lh + pp, 12);
-      ctx.fillStyle = '#ffffff';
-      ctx.fill();
-      drawImageContain(ctx, opts.logo, left, m + (bandH - lh) / 2, lw, lh, 'left');
-      headerX = left + lw + pp + 24;
-    }
-    ctx.font = '700 ' + (square ? 40 : 32) + 'px ' + FONT;
+    // 帯には診断名だけを表示
+    ctx.font = '700 ' + (square ? 44 : 36) + 'px ' + FONT;
     ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillText(opts.title, headerX, m + bandH / 2 + 2);
+    ctx.fillText(opts.title, left, m + bandH / 2 + 2);
 
     // マスコット（右下）
-    var mascotSize = square ? 360 : 300;
+    var mascotSize = square ? 330 : 300;
     var mascotX = W - m - mascotSize - (square ? 24 : 16);
     var mascotY = H - m - mascotSize - (square ? 24 : 16);
-    drawImageContain(ctx, opts.mascot, mascotX, mascotY, mascotSize, mascotSize);
+    var drawn = drawImageContain(ctx, opts.mascot, mascotX, mascotY, mascotSize, mascotSize);
+    // フクノネコが実際に描かれた左端（URL の幅の上限に使う）
+    var mascotLeft = drawn ? mascotX + (mascotSize - drawn.w) / 2 : mascotX;
+
+    // フクマナのアイコン（白い部分の左下。目立ちすぎない大きさ）
+    var footY = H - m - (square ? 72 : 52);
+    var footX = left;
+    if (opts.icon && opts.icon.naturalWidth) {
+      var inkH = square ? 96 : 72;                  // 「フクマナ」の文字部分の高さ
+      var inkBottom = square ? footY + 44 : H - m - 18;
+      var placed = drawIcon(ctx, opts.icon, left, inkBottom - inkH, inkH, function () {
+        roundRect(ctx, m, m, W - m * 2, H - m * 2, 40);  // カードの外にはみ出さない
+      });
+      if (square) footX = left + placed.inkW + 22;
+    }
 
     var y = m + bandH + (square ? 52 : 40);
     var textW = square ? contentW : contentW - mascotSize + 40;
 
-    // OGP はグループ名があれば小見出しの代わりに使う（高さが限られるため）
-    if (opts.label && (square || !opts.group)) {
+    if (opts.label) {
       ctx.font = '500 ' + (square ? 38 : 30) + 'px ' + FONT;
       ctx.fillStyle = THEME.sub;
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
       ctx.fillText(opts.label, left, y);
       y += square ? 58 : 50;
-    }
-
-    // グループ名（タイプ名の上に小さく）
-    if (opts.group) {
-      var gs = square ? 32 : 26;
-      var gh = gs + (square ? 22 : 16);
-      ctx.font = '700 ' + gs + 'px ' + FONT;
-      var gw = ctx.measureText(opts.group).width + gh;
-      roundRect(ctx, left, y, gw, gh, gh / 2);
-      ctx.fillStyle = accent;
-      ctx.globalAlpha = 0.1; // 文字とのコントラスト4.5以上を保つ薄さ
-      ctx.fill();
-      ctx.globalAlpha = 1;
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = accent;
-      ctx.stroke();
-      ctx.fillStyle = color;
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(opts.group, left + gh / 2, y + gh / 2 + 1);
-      y += gh + (square ? 16 : 12);
     }
 
     if (opts.name) {
@@ -280,25 +305,27 @@
     }
 
     // フッター（URL）
-    var footY = H - m - (square ? 72 : 52);
+    var footW = mascotLeft - footX - 16;   // フクノネコに重ならない幅
     if (opts.footer) {
-      ctx.font = '500 ' + (square ? 34 : 26) + 'px ' + FONT;
+      var footFit = fitText(ctx, opts.footer, footW, square ? 32 : 26, 20, 1, '500');
+      ctx.font = '500 ' + footFit.size + 'px ' + FONT;
       ctx.fillStyle = THEME.sub;
       ctx.textAlign = 'left';
       ctx.textBaseline = 'alphabetic';
-      ctx.fillText(opts.footer, left, footY - (square ? 52 : 38));
+      ctx.fillText(footFit.lines[0], footX, footY - (square ? 50 : 38));
     }
     if (opts.url) {
-      var urlFit = fitText(ctx, opts.url, mascotX - left - 8, square ? 34 : 26, 18, 1, '700');
+      var urlFit = fitText(ctx, opts.url, footW, square ? 34 : 26, 18, 1, '700');
       ctx.font = '700 ' + urlFit.size + 'px ' + FONT;
       ctx.fillStyle = color;
       ctx.textBaseline = 'alphabetic';
-      ctx.fillText(urlFit.lines[0], left, footY);
+      ctx.fillText(urlFit.lines[0], footX, footY);
     }
     if (opts.hashtags && square) {
-      ctx.font = '500 30px ' + FONT;
+      var tagFit = fitText(ctx, opts.hashtags, footW, 28, 20, 1, '500');
+      ctx.font = '500 ' + tagFit.size + 'px ' + FONT;
       ctx.fillStyle = THEME.sub;
-      ctx.fillText(opts.hashtags, left, footY + 48);
+      ctx.fillText(tagFit.lines[0], footX, footY + 44);
     }
     return canvas;
   }

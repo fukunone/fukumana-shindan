@@ -95,15 +95,13 @@ function buildTypePage(id) {
   const t = C.types[id];
   const S = C.sharePage;
   const desc = D.fill(t.description, D.GENERIC_FIELD);
-  const g = C.groups[t.group];
-  // 「診断でわかる9つのタイプ」をグループごとに色分けして表示
+  // 「診断でわかる9つのタイプ」をグループごとにまとめ、グループの色で表示（見出しなし・グループ間に余白）
   const others = groupIds().map((gid) => {
     const grp = C.groups[gid];
     const items = Object.keys(C.types).filter((k) => C.types[k].group === gid).map((k) =>
-      `<li><a href="${esc(k)}.html" style="--type-color:${esc(C.types[k].color)};--type-accent:${esc(C.types[k].accent)}"${k === id ? ' aria-current="page"' : ''}>${esc(C.types[k].name)}</a></li>`
+      `<li><a href="${esc(k)}.html" style="--type-color:${esc(grp.color)};--type-accent:${esc(grp.accent)}"${k === id ? ' aria-current="page"' : ''}>${esc(C.types[k].name)}</a></li>`
     ).join('\n            ');
-    return `<div class="type-group" style="--group-color:${esc(grp.color)};--group-accent:${esc(grp.accent)}">
-          <h3 class="type-group__name">${esc(grp.name)}</h3>
+    return `<div class="type-group" data-group="${esc(gid)}">
           <ul class="types-list">
             ${items}
           </ul>
@@ -141,7 +139,6 @@ ${ogpTags({
     <div class="result-hero">
       <p class="result-hero__label">${esc(S.label)}</p>
       <img class="mascot mascot--result" src="../assets/${esc(t.mascot)}" alt="フクマナ公式キャラクター フクノネコ" width="180" height="180">
-      <p class="group-label">${esc(g.name)}</p>
       <h1 class="result-hero__name">${esc(t.name)}</h1>
       <p class="result-hero__catch">${esc(t.catch)}</p>
       <p class="result-hero__desc">${esc(desc)}</p>
@@ -195,10 +192,10 @@ async function buildOgpImages() {
     await page.goto(base + 'tools/ogp.html');
     const jobs = [{ id: 'top', opts: { title: C.site.shortTitle, label: 'あなたに合った学び方がわかる', name: C.site.shortTitle, catch: '約2分・無料。おすすめの講義と次の一歩をご提案します。', mascot: C.images.ogpTop } }];
     for (const [id, t] of Object.entries(C.types)) {
-      jobs.push({ id, opts: { title: C.site.shortTitle, label: '学びタイプ', group: C.groups[t.group].name, name: t.name, catch: t.catch, color: t.color, accent: t.accent, mascot: t.mascot } });
+      jobs.push({ id, opts: { title: C.site.shortTitle, name: t.name, catch: t.catch, color: t.color, accent: t.accent, mascot: t.mascot } });
     }
     for (const job of jobs) {
-      const dataUrl = await page.evaluate((opts) => window.renderOgp(opts), { ...job.opts, logo: C.images.logo });
+      const dataUrl = await page.evaluate((opts) => window.renderOgp(opts), { ...job.opts, icon: C.images.icon });
       write(`assets/ogp/${job.id}.png`, Buffer.from(dataUrl.split(',')[1], 'base64'));
     }
   } finally {
