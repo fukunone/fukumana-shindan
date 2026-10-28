@@ -140,7 +140,7 @@ ${ogpTags({
       <p class="result-hero__label">${esc(S.label)}</p>
       <img class="mascot mascot--result" src="../assets/${esc(t.mascot)}" alt="フクマナ公式キャラクター フクノネコ" width="180" height="180">
       <h1 class="result-hero__name">${esc(t.name)}</h1>
-      <p class="result-hero__catch">${esc(t.catch)}</p>
+      <p class="result-hero__catch">${D.phrases(t.catch).map((p) => `<span class="phrase">${esc(p)}</span>`).join('')}</p>
       <p class="result-hero__desc">${esc(desc)}</p>
     </div>
 
