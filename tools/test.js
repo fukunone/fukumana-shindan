@@ -75,6 +75,33 @@ for (const id of Object.keys(C.types)) {
   const r = D.diagnose(C, 'D', [i, 0, 0, 0, 0]);
   check(r.description === C.types.kaigyo.descriptionByTag[t], `開業準備タイプ：時期「${C.roles.D.questions[0].options[i].label}」の結果文`);
 });
+// C：優先課題の回答でタイプが決まり、対応する講義が必ずおすすめに入る
+{
+  const expected = [
+    ['次の幹部・リーダーを育てること', 'exec-people'],
+    ['職員が長く働き続けられる職場をつくること', 'exec-people'],
+    ['資金繰りや金融機関との関係を安定させること', 'exec-finance'],
+    ['決算や税務を含め、経営状況を数字でつかむこと', 'exec-finance'],
+    ['必要な職員を採用すること', 'exec-brand'],
+    ['利用者や地域から選ばれること', 'exec-brand'],
+    ['上記以外の課題がある', 'exec-overall']
+  ];
+  const qs = C.roles.C.questions;
+  const pq = qs[qs.length - 1];
+  check(pq.text === '今いちばん優先したい課題は？いちばん近いものを1つ選んでください' &&
+    JSON.stringify(pq.options.map((o) => o.label)) === JSON.stringify(expected.map((e) => e[0])), '経営者・役員：最後の質問が「優先したい課題」で、選択肢の文言が指定どおり');
+  const wrong = [];
+  const missing = [];
+  for (const ans of combos(qs)) {
+    const r = D.diagnose(C, 'C', ans);
+    const k = ans[ans.length - 1];
+    if (r.typeId !== expected[k][1]) wrong.push(`${ans}→${r.typeId}`);
+    const set = pq.options[k].ensureCourses;
+    if (set && !r.courses.some((c) => set.includes(c))) missing.push(`${ans}`);
+  }
+  check(wrong.length === 0, `経営者・役員：全パターンでタイプが優先課題の回答どおり` + (wrong.length ? '：' + wrong.slice(0, 5).join(' ') : ''));
+  check(missing.length === 0, `経営者・役員：全パターンで優先課題に対応する講義がおすすめに1件以上入る` + (missing.length ? '：' + missing.slice(0, 5).join(' ') : ''));
+}
 // A：開業志向は開業・財務会計を必ず含む
 check(['kaigyo', 'finance'].every((c) => D.diagnose(C, 'A', [2, 0, 2, 0, 0, 0]).courses.includes(c)), '未来の経営者タイプ：関心が低くても「開業」「財務・会計」を推薦');
 

@@ -186,7 +186,7 @@
         '<p class="progress__text">Q' + (step + 1) + ' <span>/ ' + total + '</span></p>' +
         '<div class="question-head">' +
           '<img class="mascot mascot--question" src="' + esc(img(q.mascot)) + '" alt="" width="96" height="96">' +
-          '<h2 class="question" tabindex="-1" data-focus>' + esc(q.text) + '</h2>' +
+          '<h2 class="question" tabindex="-1" data-focus>' + phraseHtml(q.text) + '</h2>' +
         '</div>' +
         (q.note ? '<p class="question__note">' + esc(q.note) + '</p>' : '') +
         '<ul class="options">' + opts + '</ul>' +

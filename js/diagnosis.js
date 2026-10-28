@@ -21,10 +21,10 @@
       .replace(/\{staff\}/g, f.staff);
   }
 
-  /** 読点「、」の後ろで区切る（画面で改行位置をそろえるため）。例：「人が育つ職場を、」「まんなかで支える人。」 */
+  /** 読点「、」と「？」の後ろで区切る（画面で改行位置をそろえるため）。例：「人が育つ職場を、」「まんなかで支える人。」 */
   function phrases(text) {
     // 古い iPhone でも動くよう、後読みの正規表現は使わない
-    return String(text == null ? '' : text).replace(/、/g, '、\n').split('\n').filter(function (p) { return p; });
+    return String(text == null ? '' : text).replace(/([、？])/g, '$1\n').split('\n').filter(function (p) { return p; });
   }
 
   function findField(content, id) {
@@ -46,6 +46,7 @@
     var scores = {};
     Object.keys(content.courses).forEach(function (id) { scores[id] = 0; });
     var tags = {};
+    var ensures = []; // 選んだ回答に対応する講義の候補（それぞれ1件以上をおすすめに入れる）
 
     role.questions.forEach(function (q, i) {
       var opt = q.options[answers[i]];
@@ -54,6 +55,7 @@
       Object.keys(s).forEach(function (id) { scores[id] = (scores[id] || 0) + s[id]; });
       var t = opt.tags || {};
       Object.keys(t).forEach(function (k) { tags[k] = t[k]; });
+      if (opt.ensureCourses && opt.ensureCourses.length) ensures.push(opt.ensureCourses);
     });
 
     // スコア順に並べる（同点は立場ごとの priority 順）
@@ -87,6 +89,17 @@
     var picked = must.slice();
     ranking.forEach(function (id) {
       if (picked.length < 3 && picked.indexOf(id) < 0) picked.push(id);
+    });
+    // 優先課題などに対応する講義が1件も入っていなければ、候補のうち点数がいちばん高い講義と入れ替える
+    var fixed = must.slice();
+    ensures.forEach(function (set) {
+      var hit = picked.filter(function (id) { return set.indexOf(id) >= 0; })[0];
+      if (hit) { fixed.push(hit); return; }
+      var add = ranking.filter(function (id) { return set.indexOf(id) >= 0; })[0];
+      // 入れ替えるのは、必須でない講義のうち順位がいちばん低いもの
+      for (var i = picked.length - 1; i >= 0; i--) {
+        if (fixed.indexOf(picked[i]) < 0) { picked[i] = add; fixed.push(add); break; }
+      }
     });
     picked.sort(function (a, b) { return ranking.indexOf(a) - ranking.indexOf(b); });
 
