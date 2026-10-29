@@ -117,7 +117,7 @@ function buildTypePage(id) {
 <!-- このファイルは tools/build.js が自動生成します。直接編集せず data/content.json を編集してください。 -->
 ${ogpTags({
   title: `${t.name}｜${C.site.title}`,
-  description: `${t.catch}${desc}`,
+  description: `${D.plain(t.catch)}${D.plain(desc)}`,
   url: `${siteUrl}r/${id}.html`,
   image: `${siteUrl}assets/ogp/${id}.png`
 })}
@@ -192,7 +192,7 @@ async function buildOgpImages() {
     await page.goto(base + 'tools/ogp.html');
     const jobs = [{ id: 'top', opts: { title: C.site.shortTitle, label: 'あなたに合った学び方がわかる', name: C.site.shortTitle, catch: '約2分・無料。おすすめの講義と次の一歩をご提案します。', mascot: C.images.ogpTop } }];
     for (const [id, t] of Object.entries(C.types)) {
-      jobs.push({ id, opts: { title: C.site.shortTitle, name: t.name, catch: t.catch, color: t.color, accent: t.accent, mascot: t.mascot } });
+      jobs.push({ id, opts: { title: C.site.shortTitle, name: D.plain(t.name), catch: D.plain(t.catch), color: t.color, accent: t.accent, mascot: t.mascot } });
     }
     for (const job of jobs) {
       const dataUrl = await page.evaluate((opts) => window.renderOgp(opts), { ...job.opts, icon: C.images.icon });

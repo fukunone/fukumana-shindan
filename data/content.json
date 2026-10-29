@@ -1,5 +1,5 @@
 {
-  "_編集メモ": "このファイルに診断の文言・質問・結果・リンクがすべてまとまっています。編集方法は README.md の「文言の編集」を参照してください。{place} は分野に応じて「園／事業所・施設／職場」、{staff} は「保育士／職員」に置き換わります。",
+  "_編集メモ": "このファイルに診断の文言・質問・結果・リンクがすべてまとまっています。編集方法は README.md の「文言の編集」を参照してください。{place} は分野に応じて「園／事業所・施設／職場」、{staff} は「保育士／職員」に置き換わります。{br} は「スマホで折り返すならここで」という改行位置の目印で、画面には表示されません（質問文・選択肢・キャッチコピーで使えます）。",
 
   "site": {
     "url": "https://fukunone.github.io/fukumana-shindan/",
@@ -271,7 +271,7 @@
           ]
         },
         {
-          "text": "今いちばん伸ばしたい力は？いちばん近いものを1つ選んでください",
+          "text": "今いちばん{br}伸ばしたい力は？最も近いものを{br}1つ選んでください",
           "mascot": "Fukunoneko_04.png",
           "_説明": "この質問でタイプが決まります（typeRule の map）。ensureCourses は、おすすめ講義に必ず1件以上入れる講義の候補です。",
           "options": [
@@ -366,12 +366,12 @@
           ]
         },
         {
-          "text": "今いちばん優先したい課題は？いちばん近いものを1つ選んでください",
+          "text": "今いちばん{br}優先したい課題は？最も近いものを{br}1つ選んでください",
           "mascot": "Fukunoneko_04.png",
           "_説明": "この質問でタイプが決まります（typeRule の map）。ensureCourses は、おすすめ講義に必ず1件以上入れる講義の候補です。",
           "options": [
             { "label": "次の幹部・リーダーを育てること", "tags": { "priority": "leaders" }, "ensureCourses": ["sp3", "management"] },
-            { "label": "職員が長く働き続けられる職場をつくること", "tags": { "priority": "retention" }, "ensureCourses": ["labor", "sp3"] },
+            { "label": "職員が長く働き続けられる{br}職場をつくること", "tags": { "priority": "retention" }, "ensureCourses": ["labor", "sp3"] },
             { "label": "資金繰りや金融機関との関係を安定させること", "tags": { "priority": "funding" }, "ensureCourses": ["sp1", "finance"] },
             { "label": "決算や税務を含め、経営状況を数字でつかむこと", "tags": { "priority": "numbers" }, "ensureCourses": ["analysis", "finance", "tax"] },
             { "label": "必要な職員を採用すること", "tags": { "priority": "hiring" }, "ensureCourses": ["sp2"] },

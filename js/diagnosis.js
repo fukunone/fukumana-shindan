@@ -21,10 +21,20 @@
       .replace(/\{staff\}/g, f.staff);
   }
 
-  /** 読点「、」と「？」の後ろで区切る（画面で改行位置をそろえるため）。例：「人が育つ職場を、」「まんなかで支える人。」 */
+  var BR = /\{br\}/g; // 文言の中の「ここで改行してよい」目印
+
+  /** 改行位置の目印 {br} を取り除いた文（シェア文・画像・SNSの説明文用） */
+  function plain(text) {
+    return String(text == null ? '' : text).replace(BR, '');
+  }
+
+  /**
+   * 読点「、」「？」の後ろと {br} の位置で区切る（画面で改行位置をそろえるため）。
+   * 例：「人が育つ職場を、」「まんなかで支える人。」
+   */
   function phrases(text) {
     // 古い iPhone でも動くよう、後読みの正規表現は使わない
-    return String(text == null ? '' : text).replace(/([、？])/g, '$1\n').split('\n').filter(function (p) { return p; });
+    return String(text == null ? '' : text).replace(/([、？])/g, '$1\n').replace(BR, '\n').split('\n').filter(function (p) { return p; });
   }
 
   function findField(content, id) {
@@ -128,5 +138,5 @@
     };
   }
 
-  return { fill: fill, phrases: phrases, findField: findField, diagnose: diagnose, GENERIC_FIELD: GENERIC_FIELD };
+  return { fill: fill, plain: plain, phrases: phrases, findField: findField, diagnose: diagnose, GENERIC_FIELD: GENERIC_FIELD };
 });

@@ -218,7 +218,7 @@
   // ---------- 結果 ----------
   function shareInfo(typeId, type) {
     var url = new URL('r/' + typeId + '.html', baseUrl()).href;
-    var text = C.site.shareText.replace('{name}', type.name).replace('{catch}', type.catch);
+    var text = C.site.shareText.replace('{name}', D.plain(type.name)).replace('{catch}', D.plain(type.catch));
     return {
       url: url,
       text: text,
@@ -343,7 +343,7 @@
 
   // ---------- 結果画像 ----------
   function makeImage(typeId, type) {
-    var text = C.site.shortTitle + type.name + type.catch + 'わたしの学びタイプはあなたも約2分で診断できます' + displayUrl(baseUrl()) + '#フクマナ福祉経営';
+    var text = C.site.shortTitle + D.plain(type.name) + D.plain(type.catch) + 'わたしの学びタイプはあなたも約2分で診断できます' + displayUrl(baseUrl()) + '#フクマナ福祉経営';
     return Promise.all([
       Card.loadImage(img(type.mascot)),
       Card.loadImage(img(C.images.icon)),
@@ -354,8 +354,8 @@
         layout: 'square',
         title: C.site.shortTitle,
         label: 'わたしの学びタイプは',
-        name: type.name,
-        catch: type.catch,
+        name: D.plain(type.name),
+        catch: D.plain(type.catch),
         color: type.color,
         accent: type.accent,
         url: displayUrl(baseUrl()),

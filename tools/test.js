@@ -54,12 +54,12 @@ for (const field of C.fields) {
       (r.type.mustInclude || []).forEach((c) => { if (!r.courses.includes(c)) problems.push(`${field.id}/${roleId}/${ans}: ${c} が含まれない`); });
       if (r.advice.length < 2) problems.push(`${field.id}/${roleId}/${ans}: 学び方アドバイスが不足`);
       if (!r.areas.length) problems.push(`${field.id}/${roleId}/${ans}: 伸びしろ分野が空`);
-      if (texts.some((t) => !t || /\{\w+\}/.test(t))) problems.push(`${field.id}/${roleId}/${ans}: 空の文言または置換漏れ`);
+      if (texts.some((t) => !t || /\{\w+\}/.test(D.plain(t)))) problems.push(`${field.id}/${roleId}/${ans}: 空の文言または置換漏れ`);
     }
     // 質問文・選択肢の置換漏れ
     role.questions.forEach((q) => {
       [q.text, q.note].concat(q.options.map((o) => o.label)).forEach((t) => {
-        if (t && /\{\w+\}/.test(D.fill(t, field))) problems.push(`${field.id}/${roleId}: 置換漏れ「${t}」`);
+        if (t && /\{\w+\}/.test(D.plain(D.fill(t, field)))) problems.push(`${field.id}/${roleId}: 置換漏れ「${t}」`);
       });
     });
     total += n;
@@ -78,7 +78,7 @@ for (const id of Object.keys(C.types)) {
 // 管理職・経営者：最後の質問の答えでタイプが決まり、対応する講義が必ずおすすめに入る
 const DECIDING = {
   B: {
-    text: '今いちばん伸ばしたい力は？いちばん近いものを1つ選んでください',
+    text: '今いちばん伸ばしたい力は？最も近いものを1つ選んでください',
     options: [
       ['職員一人ひとりを育てる力', 'core'],
       ['チームをまとめ、現場を動かす力', 'core'],
@@ -87,7 +87,7 @@ const DECIDING = {
     ]
   },
   C: {
-    text: '今いちばん優先したい課題は？いちばん近いものを1つ選んでください',
+    text: '今いちばん優先したい課題は？最も近いものを1つ選んでください',
     options: [
       ['次の幹部・リーダーを育てること', 'exec-people'],
       ['職員が長く働き続けられる職場をつくること', 'exec-people'],
@@ -103,7 +103,7 @@ for (const [roleId, spec] of Object.entries(DECIDING)) {
   const role = C.roles[roleId];
   const qs = role.questions;
   const pq = qs[qs.length - 1];
-  check(pq.text === spec.text && JSON.stringify(pq.options.map((o) => o.label)) === JSON.stringify(spec.options.map((e) => e[0])),
+  check(D.plain(pq.text) === spec.text && JSON.stringify(pq.options.map((o) => D.plain(o.label))) === JSON.stringify(spec.options.map((e) => e[0])),
     `${role.name}：最後の質問「${spec.text.split('？')[0]}？」と選択肢の文言が指定どおり`);
   const wrong = [];
   const missing = [];

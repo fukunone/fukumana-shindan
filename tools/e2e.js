@@ -256,7 +256,7 @@ async function layoutReport(page) {
       x.searchParams.get('text').includes(C.types[typeId].name) &&
       x.searchParams.get('text').includes(C.types[typeId].catch), `${label}：Xシェアの文面（タイプ名・キャッチ・URL・ハッシュタグ）`);
     const xText = x.searchParams.get('text');
-    const leaks = C.roles[C.types[typeId].role].questions.flatMap((q) => q.options.map((o) => o.label)).filter((l) => l.length > 3 && xText.includes(l));
+    const leaks = C.roles[C.types[typeId].role].questions.flatMap((q) => q.options.map((o) => D.plain(o.label))).filter((l) => l.length > 3 && xText.includes(l));
     check(leaks.length === 0, `${label}：シェア文に回答内容が含まれない`);
     const line = new URL(share.line);
     check(line.searchParams.get('url') === pageUrl, `${label}：LINEで送るのURL`);
@@ -313,6 +313,33 @@ async function layoutReport(page) {
       if (!r.length) bad.push(`${id}：かたまりが見つからない`);
     }
     check(bad.length === 0, `${width}px：9タイプすべてで、読点ごとのかたまりが1行に収まる` + (bad.length ? '：' + bad.join(' ') : ''));
+    await page.close();
+  }
+
+  // ---------- 5c. タイプを決める質問の改行（{br} の位置） ----------
+  console.log('\n[5c] 管理職・経営者の最後の質問：目印 {br} が表示されず、かたまりごとに改行される');
+  for (const width of [360, 390]) {
+    const page = await browser.newPage({ viewport: { width, height: 800 } });
+    for (const roleId of ['B', 'C']) {
+      const qs = C.roles[roleId].questions;
+      await page.goto(base + 'index.html?field=hoiku');
+      await page.click('#start');
+      await clickOption(page, ['A', 'B', 'C', 'D'].indexOf(roleId));
+      for (let i = 0; i < qs.length - 1; i++) await clickOption(page, 0);
+      await page.evaluate(() => document.fonts.ready);
+      const r = await page.evaluate(() => {
+        const h = document.querySelector('.question');
+        const lh = parseFloat(getComputedStyle(h).lineHeight);
+        return {
+          text: h.textContent,
+          shown: document.body.innerText.includes('{'),
+          chunks: Array.from(h.querySelectorAll('.phrase')).map((p) => [p.textContent, p.getBoundingClientRect().height <= lh * 1.2])
+        };
+      });
+      const bad = r.chunks.filter(([, ok]) => !ok).map(([t]) => t);
+      check(r.text === D.plain(qs[qs.length - 1].text) && !r.shown && bad.length === 0,
+        `${width}px ${C.roles[roleId].name}：「${r.chunks.map(([t]) => t).join('／')}」` + (bad.length ? ` 折り返し：${bad.join(',')}` : ''));
+    }
     await page.close();
   }
 
