@@ -172,7 +172,7 @@
     var opts = q.options.map(function (o, i) {
       var selected = prev === o.value && state.memo.length > step ? ' is-selected' : '';
       return '<li><button type="button" class="option' + selected + '" data-i="' + i + '">' +
-        '<span class="option__label">' + esc(o.label) + '</span>' +
+        '<span class="option__label">' + phraseHtml(o.label) + '</span>' +
         (o.sub ? '<span class="option__sub">' + esc(o.sub) + '</span>' : '') +
         '</button></li>';
     }).join('');
@@ -186,7 +186,7 @@
         '<p class="progress__text">Q' + (step + 1) + ' <span>/ ' + total + '</span></p>' +
         '<div class="question-head">' +
           '<img class="mascot mascot--question" src="' + esc(img(q.mascot)) + '" alt="" width="96" height="96">' +
-          '<h2 class="question" tabindex="-1" data-focus>' + esc(q.text) + '</h2>' +
+          '<h2 class="question" tabindex="-1" data-focus>' + phraseHtml(q.text) + '</h2>' +
         '</div>' +
         (q.note ? '<p class="question__note">' + esc(q.note) + '</p>' : '') +
         '<ul class="options">' + opts + '</ul>' +
@@ -218,7 +218,7 @@
   // ---------- 結果 ----------
   function shareInfo(typeId, type) {
     var url = new URL('r/' + typeId + '.html', baseUrl()).href;
-    var text = C.site.shareText.replace('{name}', type.name).replace('{catch}', type.catch);
+    var text = C.site.shareText.replace('{name}', D.plain(type.name)).replace('{catch}', D.plain(type.catch));
     return {
       url: url,
       text: text,
@@ -343,7 +343,7 @@
 
   // ---------- 結果画像 ----------
   function makeImage(typeId, type) {
-    var text = C.site.shortTitle + type.name + type.catch + 'わたしの学びタイプはあなたも約2分で診断できます' + displayUrl(baseUrl()) + '#フクマナ福祉経営';
+    var text = C.site.shortTitle + D.plain(type.name) + D.plain(type.catch) + 'わたしの学びタイプはあなたも約2分で診断できます' + displayUrl(baseUrl()) + '#フクマナ福祉経営';
     return Promise.all([
       Card.loadImage(img(type.mascot)),
       Card.loadImage(img(C.images.icon)),
@@ -354,8 +354,8 @@
         layout: 'square',
         title: C.site.shortTitle,
         label: 'わたしの学びタイプは',
-        name: type.name,
-        catch: type.catch,
+        name: D.plain(type.name),
+        catch: D.plain(type.catch),
         color: type.color,
         accent: type.accent,
         url: displayUrl(baseUrl()),

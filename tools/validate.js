@@ -40,13 +40,16 @@ function validate(C, rootDir) {
 
   for (const [rid, role] of Object.entries(C.roles || {})) {
     const n = role.questions.length;
-    if (n < 4 || n > 6) errors.push(`roles.${rid} の質問数が ${n} 問です（4〜6問にしてください）`);
+    if (n < 4 || n > 7) errors.push(`roles.${rid} の質問数が ${n} 問です（4〜7問にしてください）`);
     role.questions.forEach((q, qi) => {
       if (!q.text) errors.push(`roles.${rid} の${qi + 1}問目に text がありません`);
       if (q.mascot) checkImage(q.mascot, `roles.${rid} の${qi + 1}問目の mascot`);
-      if (!q.options || q.options.length < 2 || q.options.length > 5) errors.push(`roles.${rid} の${qi + 1}問目の選択肢は2〜5個にしてください`);
+      if (!q.options || q.options.length < 2 || q.options.length > 7) errors.push(`roles.${rid} の${qi + 1}問目の選択肢は2〜7個にしてください`);
       (q.options || []).forEach((o, oi) => {
         if (!o.label) errors.push(`roles.${rid} の${qi + 1}問目・選択肢${oi + 1}に label がありません`);
+        (o.ensureCourses || []).forEach((c) => {
+          if (!courseIds.includes(c)) errors.push(`roles.${rid} の${qi + 1}問目・選択肢${oi + 1}の ensureCourses に未定義の講義「${c}」があります`);
+        });
         Object.keys(o.scores || {}).forEach((c) => {
           if (!courseIds.includes(c)) errors.push(`roles.${rid} の${qi + 1}問目で未定義の講義「${c}」が使われています`);
         });
@@ -54,8 +57,22 @@ function validate(C, rootDir) {
     });
     role.priority.forEach((c) => { if (!courseIds.includes(c)) errors.push(`roles.${rid}.priority に未定義の講義「${c}」があります`); });
     const rule = role.typeRule;
-    const ruleTypes = rule.by === 'fixed' ? [rule.type] : rule.by === 'tag' ? Object.values(rule.map) : rule.groups.map((g) => g.type);
+    if (rule.by !== 'fixed' && rule.by !== 'tag') {
+      errors.push(`roles.${rid}.typeRule.by は "tag"（答えで決める）か "fixed"（常に同じタイプ）にしてください`);
+      continue;
+    }
+    const ruleTypes = rule.by === 'fixed' ? [rule.type] : Object.values(rule.map);
     ruleTypes.forEach((t) => { if (!typeIds.includes(t)) errors.push(`roles.${rid}.typeRule に未定義のタイプ「${t}」があります`); });
+    if (rule.by === 'tag') {
+      // タイプを決める質問の選択肢が、すべて判定先を持っていること
+      role.questions.forEach((q, qi) => q.options.forEach((o, oi) => {
+        const v = o.tags && o.tags[rule.key];
+        if (v !== undefined && !rule.map[v]) errors.push(`roles.${rid} の${qi + 1}問目・選択肢${oi + 1}（${rule.key}: ${v}）の判定先が typeRule.map にありません`);
+      }));
+      if (!role.questions.some((q) => q.options.every((o) => o.tags && o.tags[rule.key] !== undefined))) {
+        errors.push(`roles.${rid}：タイプを決める質問（すべての選択肢に ${rule.key} がある質問）がありません`);
+      }
+    }
   }
 
   for (const [gid, g] of Object.entries(C.groups || {})) {

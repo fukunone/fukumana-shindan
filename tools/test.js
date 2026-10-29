@@ -54,12 +54,12 @@ for (const field of C.fields) {
       (r.type.mustInclude || []).forEach((c) => { if (!r.courses.includes(c)) problems.push(`${field.id}/${roleId}/${ans}: ${c} が含まれない`); });
       if (r.advice.length < 2) problems.push(`${field.id}/${roleId}/${ans}: 学び方アドバイスが不足`);
       if (!r.areas.length) problems.push(`${field.id}/${roleId}/${ans}: 伸びしろ分野が空`);
-      if (texts.some((t) => !t || /\{\w+\}/.test(t))) problems.push(`${field.id}/${roleId}/${ans}: 空の文言または置換漏れ`);
+      if (texts.some((t) => !t || /\{\w+\}/.test(D.plain(t)))) problems.push(`${field.id}/${roleId}/${ans}: 空の文言または置換漏れ`);
     }
     // 質問文・選択肢の置換漏れ
     role.questions.forEach((q) => {
       [q.text, q.note].concat(q.options.map((o) => o.label)).forEach((t) => {
-        if (t && /\{\w+\}/.test(D.fill(t, field))) problems.push(`${field.id}/${roleId}: 置換漏れ「${t}」`);
+        if (t && /\{\w+\}/.test(D.plain(D.fill(t, field)))) problems.push(`${field.id}/${roleId}: 置換漏れ「${t}」`);
       });
     });
     total += n;
@@ -75,6 +75,71 @@ for (const id of Object.keys(C.types)) {
   const r = D.diagnose(C, 'D', [i, 0, 0, 0, 0]);
   check(r.description === C.types.kaigyo.descriptionByTag[t], `開業準備タイプ：時期「${C.roles.D.questions[0].options[i].label}」の結果文`);
 });
+// 管理職・経営者：最後の質問の答えでタイプが決まり、対応する講義が必ずおすすめに入る
+const DECIDING = {
+  B: {
+    text: '今いちばん伸ばしたい力は？最も近いものを1つ選んでください',
+    options: [
+      ['職員一人ひとりを育てる力', 'core'],
+      ['チームをまとめ、現場を動かす力', 'core'],
+      ['収支や数字で現場の状況を説明する力', 'manager'],
+      ['経営の考えを理解し、現場に伝える力', 'manager']
+    ]
+  },
+  C: {
+    text: '今いちばん優先したい課題は？最も近いものを1つ選んでください',
+    options: [
+      ['次の幹部・リーダーを育てること', 'exec-people'],
+      ['職員が長く働き続けられる職場をつくること', 'exec-people'],
+      ['資金繰りや金融機関との関係を安定させること', 'exec-finance'],
+      ['決算や税務を含め、経営状況を数字でつかむこと', 'exec-finance'],
+      ['必要な職員を採用すること', 'exec-brand'],
+      ['利用者や地域から選ばれること', 'exec-brand'],
+      ['上記以外の課題がある', 'exec-overall']
+    ]
+  }
+};
+for (const [roleId, spec] of Object.entries(DECIDING)) {
+  const role = C.roles[roleId];
+  const qs = role.questions;
+  const pq = qs[qs.length - 1];
+  check(D.plain(pq.text) === spec.text && JSON.stringify(pq.options.map((o) => D.plain(o.label))) === JSON.stringify(spec.options.map((e) => e[0])),
+    `${role.name}：最後の質問「${spec.text.split('？')[0]}？」と選択肢の文言が指定どおり`);
+  const wrong = [];
+  const missing = [];
+  let n = 0;
+  for (const ans of combos(qs)) {
+    n++;
+    const r = D.diagnose(C, roleId, ans);
+    const k = ans[ans.length - 1];
+    if (r.typeId !== spec.options[k][1]) wrong.push(`${ans}→${r.typeId}`);
+    const set = pq.options[k].ensureCourses;
+    // 「上記以外の課題がある」のように対応する講義を決めていない答えは、点数上位から選ぶ
+    if (set && !r.courses.some((c) => set.includes(c))) missing.push(`${ans}`);
+  }
+  check(wrong.length === 0, `${role.name}：全${n}パターンでタイプが最後の質問の答えどおり` + (wrong.length ? '：' + wrong.slice(0, 5).join(' ') : ''));
+  check(missing.length === 0, `${role.name}：全${n}パターンで選んだ答えに対応する講義がおすすめに1件以上入る` + (missing.length ? '：' + missing.slice(0, 5).join(' ') : ''));
+}
+
+// 同点（点数の比較）でタイプが決まるケースがないこと：
+// すべての立場で、タイプは「答え（tag）」か「固定」で決まり、同じ答えなら他の回答に関係なく同じタイプになる
+for (const [roleId, role] of Object.entries(C.roles)) {
+  const rule = role.typeRule;
+  let byScore = 0;
+  let n = 0;
+  if (rule.by === 'tag') {
+    for (const ans of combos(role.questions)) {
+      n++;
+      const r = D.diagnose(C, roleId, ans);
+      if (r.tags[rule.key] === undefined || r.typeId !== rule.map[r.tags[rule.key]]) byScore++;
+    }
+  } else if (rule.by === 'fixed') {
+    n = [...combos(role.questions)].length;
+  } else {
+    byScore = -1;
+  }
+  check(byScore === 0, `${role.name}：同点（点数の比較）でタイプが決まるケース ${byScore < 0 ? '判定方法が不正' : byScore + '件'}／全${n}パターン（${rule.by === 'tag' ? '答えで判定' : '固定'}）`);
+}
 // A：開業志向は開業・財務会計を必ず含む
 check(['kaigyo', 'finance'].every((c) => D.diagnose(C, 'A', [2, 0, 2, 0, 0, 0]).courses.includes(c)), '未来の経営者タイプ：関心が低くても「開業」「財務・会計」を推薦');
 

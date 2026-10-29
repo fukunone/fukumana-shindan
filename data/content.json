@@ -1,11 +1,11 @@
 {
-  "_編集メモ": "このファイルに診断の文言・質問・結果・リンクがすべてまとまっています。編集方法は README.md の「文言の編集」を参照してください。{place} は分野に応じて「園／事業所・施設／職場」、{staff} は「保育士／職員」に置き換わります。",
+  "_編集メモ": "このファイルに診断の文言・質問・結果・リンクがすべてまとまっています。編集方法は README.md の「文言の編集」を参照してください。{place} は分野に応じて「園／事業所・施設／職場」、{staff} は「保育士／職員」に置き換わります。{br} は「スマホで折り返すならここで」という改行位置の目印で、画面には表示されません（質問文・選択肢・キャッチコピーで使えます）。",
 
   "site": {
     "url": "https://fukunone.github.io/fukumana-shindan/",
     "title": "福祉経営 学びタイプ診断｜フクマナ",
     "shortTitle": "福祉経営 学びタイプ診断",
-    "description": "5〜6問・約2分で、あなたに合った福祉経営の学び方が分かる無料診断。おすすめの講義と、次の一歩をご提案します。",
+    "description": "5〜7問・約2分で、あなたに合った福祉経営の学び方が分かる無料診断。おすすめの講義と、次の一歩をご提案します。",
     "shareText": "福祉経営 学びタイプ診断の結果は「{name}」でした！\n{catch}",
     "hashtags": ["フクマナ", "福祉経営"]
   },
@@ -209,11 +209,14 @@
       "name": "管理職",
       "priority": ["sp3", "management", "finance", "analysis", "labor", "sp2", "marketing", "tax", "sp1", "kaigyo"],
       "typeRule": {
-        "by": "group",
-        "groups": [
-          { "type": "core", "courses": ["management", "sp3"] },
-          { "type": "manager", "courses": ["finance", "analysis"] }
-        ]
+        "by": "tag",
+        "key": "strength",
+        "map": {
+          "develop": "core",
+          "lead": "core",
+          "numbers": "manager",
+          "bridge": "manager"
+        }
       },
       "advice": {
         "default": "忙しい管理職の方でも、1講義約4分なら業務の合間に学べます。学んだ内容をそのまま職員への説明に使えるのも強みです。"
@@ -266,6 +269,17 @@
             { "label": "あまり感じない", "scores": { "management": 1 } },
             { "label": "感じない", "scores": {} }
           ]
+        },
+        {
+          "text": "今いちばん{br}伸ばしたい力は？最も近いものを{br}1つ選んでください",
+          "mascot": "Fukunoneko_04.png",
+          "_説明": "この質問でタイプが決まります（typeRule の map）。ensureCourses は、おすすめ講義に必ず1件以上入れる講義の候補です。",
+          "options": [
+            { "label": "職員一人ひとりを育てる力", "tags": { "strength": "develop" }, "ensureCourses": ["sp3"] },
+            { "label": "チームをまとめ、現場を動かす力", "tags": { "strength": "lead" }, "ensureCourses": ["management"] },
+            { "label": "収支や数字で現場の状況を説明する力", "tags": { "strength": "numbers" }, "ensureCourses": ["finance", "analysis"] },
+            { "label": "経営の考えを理解し、現場に伝える力", "tags": { "strength": "bridge" }, "ensureCourses": ["management", "analysis"] }
+          ]
         }
       ]
     },
@@ -274,12 +288,17 @@
       "name": "経営者・役員・理事",
       "priority": ["analysis", "finance", "sp3", "management", "sp2", "marketing", "sp1", "tax", "labor", "kaigyo"],
       "typeRule": {
-        "by": "group",
-        "groups": [
-          { "type": "exec-people", "courses": ["management", "sp3"] },
-          { "type": "exec-finance", "courses": ["finance", "analysis", "tax", "sp1"] },
-          { "type": "exec-brand", "courses": ["sp2", "marketing"] }
-        ]
+        "by": "tag",
+        "key": "priority",
+        "map": {
+          "leaders": "exec-people",
+          "retention": "exec-people",
+          "funding": "exec-finance",
+          "numbers": "exec-finance",
+          "hiring": "exec-brand",
+          "chosen": "exec-brand",
+          "other": "exec-overall"
+        }
       },
       "advice": {
         "key": "training",
@@ -344,6 +363,20 @@
             { "label": "ややある", "scores": { "tax": 2 } },
             { "label": "あまりない", "scores": { "tax": 1 } },
             { "label": "ない", "scores": {} }
+          ]
+        },
+        {
+          "text": "今いちばん{br}優先したい課題は？最も近いものを{br}1つ選んでください",
+          "mascot": "Fukunoneko_04.png",
+          "_説明": "この質問でタイプが決まります（typeRule の map）。ensureCourses は、おすすめ講義に必ず1件以上入れる講義の候補です。",
+          "options": [
+            { "label": "次の幹部・リーダーを育てること", "tags": { "priority": "leaders" }, "ensureCourses": ["sp3", "management"] },
+            { "label": "職員が長く働き続けられる{br}職場をつくること", "tags": { "priority": "retention" }, "ensureCourses": ["labor", "sp3"] },
+            { "label": "資金繰りや金融機関との関係を安定させること", "tags": { "priority": "funding" }, "ensureCourses": ["sp1", "finance"] },
+            { "label": "決算や税務を含め、経営状況を数字でつかむこと", "tags": { "priority": "numbers" }, "ensureCourses": ["analysis", "finance", "tax"] },
+            { "label": "必要な職員を採用すること", "tags": { "priority": "hiring" }, "ensureCourses": ["sp2"] },
+            { "label": "利用者や地域から選ばれること", "tags": { "priority": "chosen" }, "ensureCourses": ["marketing"] },
+            { "label": "上記以外の課題がある", "tags": { "priority": "other" } }
           ]
         }
       ]
@@ -511,6 +544,20 @@
       "color": "#1e5aa8",
       "accent": "#5aa0e6",
       "mascot": "Fukunoneko_05.png",
+      "ctas": [
+        { "link": "company", "label": "法人プランの資料請求・個別質問会", "sub": "法人様限定で5ID以上の一括申込に特典あり", "style": "primary" },
+        { "link": "line", "label": "まずはご自身で7日間無料体験", "sub": "公式LINEから無料講義をお試しいただけます", "style": "secondary" }
+      ]
+    },
+    "exec-overall": {
+      "group": "hojin",
+      "role": "C",
+      "name": "経営全体を見渡す経営者タイプ",
+      "catch": "全体を見渡し、法人のかじを取る経営者。",
+      "description": "ひとつの分野に絞りきれない課題に向き合っているのは、法人全体に目を配っている証です。人材・お金・発信など経営の基礎を横断的に学ぶと、課題どうしのつながりが見え、次の一手を決めやすくなります。",
+      "color": "#2a4a6b",
+      "accent": "#7f9fbf",
+      "mascot": "Fukunoneko_06.png",
       "ctas": [
         { "link": "company", "label": "法人プランの資料請求・個別質問会", "sub": "法人様限定で5ID以上の一括申込に特典あり", "style": "primary" },
         { "link": "line", "label": "まずはご自身で7日間無料体験", "sub": "公式LINEから無料講義をお試しいただけます", "style": "secondary" }

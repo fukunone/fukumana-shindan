@@ -21,10 +21,20 @@
       .replace(/\{staff\}/g, f.staff);
   }
 
-  /** 読点「、」の後ろで区切る（画面で改行位置をそろえるため）。例：「人が育つ職場を、」「まんなかで支える人。」 */
+  var BR = /\{br\}/g; // 文言の中の「ここで改行してよい」目印
+
+  /** 改行位置の目印 {br} を取り除いた文（シェア文・画像・SNSの説明文用） */
+  function plain(text) {
+    return String(text == null ? '' : text).replace(BR, '');
+  }
+
+  /**
+   * 読点「、」「？」の後ろと {br} の位置で区切る（画面で改行位置をそろえるため）。
+   * 例：「人が育つ職場を、」「まんなかで支える人。」
+   */
   function phrases(text) {
     // 古い iPhone でも動くよう、後読みの正規表現は使わない
-    return String(text == null ? '' : text).replace(/、/g, '、\n').split('\n').filter(function (p) { return p; });
+    return String(text == null ? '' : text).replace(/([、？])/g, '$1\n').replace(BR, '\n').split('\n').filter(function (p) { return p; });
   }
 
   function findField(content, id) {
@@ -46,6 +56,7 @@
     var scores = {};
     Object.keys(content.courses).forEach(function (id) { scores[id] = 0; });
     var tags = {};
+    var ensures = []; // 選んだ回答に対応する講義の候補（それぞれ1件以上をおすすめに入れる）
 
     role.questions.forEach(function (q, i) {
       var opt = q.options[answers[i]];
@@ -54,6 +65,7 @@
       Object.keys(s).forEach(function (id) { scores[id] = (scores[id] || 0) + s[id]; });
       var t = opt.tags || {};
       Object.keys(t).forEach(function (k) { tags[k] = t[k]; });
+      if (opt.ensureCourses && opt.ensureCourses.length) ensures.push(opt.ensureCourses);
     });
 
     // スコア順に並べる（同点は立場ごとの priority 順）
@@ -66,19 +78,13 @@
       return (scores[b] - scores[a]) || (rankOf(a) - rankOf(b));
     });
 
-    // タイプ判定
+    // タイプ判定：本人が選んだ答え（tag）で決める。点数の比較は使わないので、同点で決まることはない
     var rule = role.typeRule;
     var typeId;
     if (rule.by === 'fixed') {
       typeId = rule.type;
     } else if (rule.by === 'tag') {
       typeId = rule.map[tags[rule.key]] || rule.map[Object.keys(rule.map)[0]];
-    } else if (rule.by === 'group') {
-      var best = -1;
-      rule.groups.forEach(function (g) {
-        var v = Math.max.apply(null, g.courses.map(function (id) { return scores[id] || 0; }));
-        if (v > best) { best = v; typeId = g.type; }
-      });
     }
     var type = content.types[typeId];
 
@@ -87,6 +93,17 @@
     var picked = must.slice();
     ranking.forEach(function (id) {
       if (picked.length < 3 && picked.indexOf(id) < 0) picked.push(id);
+    });
+    // 優先課題などに対応する講義が1件も入っていなければ、候補のうち点数がいちばん高い講義と入れ替える
+    var fixed = must.slice();
+    ensures.forEach(function (set) {
+      var hit = picked.filter(function (id) { return set.indexOf(id) >= 0; })[0];
+      if (hit) { fixed.push(hit); return; }
+      var add = ranking.filter(function (id) { return set.indexOf(id) >= 0; })[0];
+      // 入れ替えるのは、必須でない講義のうち順位がいちばん低いもの
+      for (var i = picked.length - 1; i >= 0; i--) {
+        if (fixed.indexOf(picked[i]) < 0) { picked[i] = add; fixed.push(add); break; }
+      }
     });
     picked.sort(function (a, b) { return ranking.indexOf(a) - ranking.indexOf(b); });
 
@@ -121,5 +138,5 @@
     };
   }
 
-  return { fill: fill, phrases: phrases, findField: findField, diagnose: diagnose, GENERIC_FIELD: GENERIC_FIELD };
+  return { fill: fill, plain: plain, phrases: phrases, findField: findField, diagnose: diagnose, GENERIC_FIELD: GENERIC_FIELD };
 });
