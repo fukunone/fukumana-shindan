@@ -68,19 +68,13 @@
       return (scores[b] - scores[a]) || (rankOf(a) - rankOf(b));
     });
 
-    // タイプ判定
+    // タイプ判定：本人が選んだ答え（tag）で決める。点数の比較は使わないので、同点で決まることはない
     var rule = role.typeRule;
     var typeId;
     if (rule.by === 'fixed') {
       typeId = rule.type;
     } else if (rule.by === 'tag') {
       typeId = rule.map[tags[rule.key]] || rule.map[Object.keys(rule.map)[0]];
-    } else if (rule.by === 'group') {
-      var best = -1;
-      rule.groups.forEach(function (g) {
-        var v = Math.max.apply(null, g.courses.map(function (id) { return scores[id] || 0; }));
-        if (v > best) { best = v; typeId = g.type; }
-      });
     }
     var type = content.types[typeId];
 

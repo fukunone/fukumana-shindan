@@ -209,11 +209,14 @@
       "name": "管理職",
       "priority": ["sp3", "management", "finance", "analysis", "labor", "sp2", "marketing", "tax", "sp1", "kaigyo"],
       "typeRule": {
-        "by": "group",
-        "groups": [
-          { "type": "core", "courses": ["management", "sp3"] },
-          { "type": "manager", "courses": ["finance", "analysis"] }
-        ]
+        "by": "tag",
+        "key": "strength",
+        "map": {
+          "develop": "core",
+          "lead": "core",
+          "numbers": "manager",
+          "bridge": "manager"
+        }
       },
       "advice": {
         "default": "忙しい管理職の方でも、1講義約4分なら業務の合間に学べます。学んだ内容をそのまま職員への説明に使えるのも強みです。"
@@ -265,6 +268,17 @@
             { "label": "ときどき感じる", "scores": { "management": 2 } },
             { "label": "あまり感じない", "scores": { "management": 1 } },
             { "label": "感じない", "scores": {} }
+          ]
+        },
+        {
+          "text": "今いちばん伸ばしたい力は？いちばん近いものを1つ選んでください",
+          "mascot": "Fukunoneko_04.png",
+          "_説明": "この質問でタイプが決まります（typeRule の map）。ensureCourses は、おすすめ講義に必ず1件以上入れる講義の候補です。",
+          "options": [
+            { "label": "職員一人ひとりを育てる力", "tags": { "strength": "develop" }, "ensureCourses": ["sp3"] },
+            { "label": "チームをまとめ、現場を動かす力", "tags": { "strength": "lead" }, "ensureCourses": ["management"] },
+            { "label": "収支や数字で現場の状況を説明する力", "tags": { "strength": "numbers" }, "ensureCourses": ["finance", "analysis"] },
+            { "label": "経営の考えを理解し、現場に伝える力", "tags": { "strength": "bridge" }, "ensureCourses": ["management", "analysis"] }
           ]
         }
       ]

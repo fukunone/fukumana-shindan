@@ -57,7 +57,11 @@ function validate(C, rootDir) {
     });
     role.priority.forEach((c) => { if (!courseIds.includes(c)) errors.push(`roles.${rid}.priority に未定義の講義「${c}」があります`); });
     const rule = role.typeRule;
-    const ruleTypes = rule.by === 'fixed' ? [rule.type] : rule.by === 'tag' ? Object.values(rule.map) : rule.groups.map((g) => g.type);
+    if (rule.by !== 'fixed' && rule.by !== 'tag') {
+      errors.push(`roles.${rid}.typeRule.by は "tag"（答えで決める）か "fixed"（常に同じタイプ）にしてください`);
+      continue;
+    }
+    const ruleTypes = rule.by === 'fixed' ? [rule.type] : Object.values(rule.map);
     ruleTypes.forEach((t) => { if (!typeIds.includes(t)) errors.push(`roles.${rid}.typeRule に未定義のタイプ「${t}」があります`); });
     if (rule.by === 'tag') {
       // タイプを決める質問の選択肢が、すべて判定先を持っていること

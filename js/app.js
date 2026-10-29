@@ -172,7 +172,7 @@
     var opts = q.options.map(function (o, i) {
       var selected = prev === o.value && state.memo.length > step ? ' is-selected' : '';
       return '<li><button type="button" class="option' + selected + '" data-i="' + i + '">' +
-        '<span class="option__label">' + esc(o.label) + '</span>' +
+        '<span class="option__label">' + phraseHtml(o.label) + '</span>' +
         (o.sub ? '<span class="option__sub">' + esc(o.sub) + '</span>' : '') +
         '</button></li>';
     }).join('');
