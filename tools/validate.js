@@ -30,6 +30,8 @@ function validate(C, rootDir) {
     if (!C.links || C.links[k] !== v) errors.push(`links.${k} が仕様のURL（${v}）と異なります`);
   }
   if (!/^https:\/\/.+\/$/.test(C.site && C.site.url || '')) errors.push('site.url は https:// で始まり / で終わる公開URLにしてください');
+  const gaId = C.analytics && C.analytics.measurementId;
+  if (gaId && !/^G-[A-Z0-9]{6,}$/.test(gaId)) errors.push(`analytics.measurementId（${gaId}）は「G-」で始まるGA4の測定IDにしてください（止めるときは空にする）`);
 
   const fieldIds = (C.fields || []).map((f) => f.id);
   if (!fieldIds.includes('hoiku')) errors.push('fields に hoiku（保育）がありません');

@@ -170,6 +170,7 @@ console.log('\n[4] 外部リンク');
 const ALLOWED_PREFIX = [
   'https://fonts.googleapis.com', 'https://fonts.gstatic.com',            // フォント
   'https://twitter.com/intent/tweet', 'https://social-plugins.line.me/lineit/share', // シェア
+  'https://www.googletagmanager.com/gtag/js',                              // アクセス解析（GA4）
   C.site.url                                                              // 自サイト（OGP）
 ];
 const linkValues = Object.values(EXPECTED_LINKS);

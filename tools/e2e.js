@@ -372,6 +372,87 @@ async function layoutReport(page) {
     await page.close();
   }
 
+  // ---------- 7. アクセス解析（GA4） ----------
+  console.log('\n[7] アクセス解析（GA4）：送るイベントと、回答内容を送らないこと');
+  {
+    // 手元（127.0.0.1）では Google には送信せず、dataLayer に積まれた内容だけを確認する
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, permissions: ['clipboard-read', 'clipboard-write'] });
+    const page = await ctx.newPage();
+    const gaRequests = [];
+    page.on('request', (r) => { if (/googletagmanager|google-analytics/.test(r.url())) gaRequests.push(r.url()); });
+    const events = () => page.evaluate(() => (window.dataLayer || []).map((a) => Array.from(a)).filter((a) => a[0] === 'event').map((a) => [a[1], a[2] || {}]));
+
+    await page.goto(base + 'index.html?field=hoiku&src=hoikuhaku');
+    await page.waitForSelector('#start');
+    const cfg = await page.evaluate(() => (window.dataLayer || []).map((a) => Array.from(a)).find((a) => a[0] === 'config'));
+    const loc = new URL(cfg[2].page_location);
+    check(cfg[1] === C.analytics.measurementId && loc.searchParams.get('utm_source') === 'hoikuhaku' && loc.searchParams.get('utm_medium') === 'qr',
+      `測定ID ${cfg[1]}・流入元 src=hoikuhaku → 参照元/メディア「${loc.searchParams.get('utm_source')} / ${loc.searchParams.get('utm_medium')}」`);
+
+    // 管理職で通しで回答（途中で「戻る」も使う）
+    const roleId = 'B';
+    const qs = C.roles[roleId].questions;
+    await page.click('#start');
+    await clickOption(page, ['A', 'B', 'C', 'D'].indexOf(roleId));
+    await clickOption(page, 1);
+    await page.click('#back');
+    await page.waitForTimeout(150);
+    await clickOption(page, 2);
+    for (let i = 1; i < qs.length; i++) await clickOption(page, i % qs[i].options.length);
+    await page.waitForSelector('.screen--result');
+    // 結果画面を表示し直しても完了は1回だけ
+    await page.goBack();
+    await page.waitForTimeout(150);
+    await page.goForward();
+    await page.waitForTimeout(150);
+    if (!(await page.$('.screen--result'))) await clickOption(page, 0);
+    await page.waitForSelector('.screen--result');
+    const typeId = await page.$eval('.screen--result', (el) => el.dataset.type);
+
+    // 外部サイトは開かずに、クリックだけを確認する
+    await page.evaluate(() => document.querySelectorAll('a[target=_blank]').forEach((a) => a.addEventListener('click', (e) => e.preventDefault())));
+    for (const sel of ['[data-cta="line"]', '[data-cta="company"]', '#share-x', '#share-line', '#share-copy']) {
+      if (await page.$(sel)) await page.click(sel);
+    }
+    await page.click('#share-image');
+    await page.waitForSelector('.modal');
+
+    const ev = await events();
+    const names = ev.map((e) => e[0]);
+    const reach = ev.filter((e) => e[0] === 'question_reach').map((e) => e[1].question_number);
+    const total = 1 + qs.length; // 分野の質問はスキップ（?field=hoiku）
+    check(names[0] === 'diagnosis_start' && names.filter((n) => n === 'diagnosis_start').length === 1, '診断の開始：diagnosis_start が1回');
+    check(JSON.stringify(reach) === JSON.stringify(Array.from({ length: total }, (_, i) => i + 1)),
+      `設問への到達：question_reach が Q1〜Q${total} を1回ずつ（「戻る」で重複しない）：${reach.join(',')}`);
+    const done = ev.filter((e) => e[0] === 'diagnosis_complete');
+    check(done.length === 1 && done[0][1].role_id === roleId && done[0][1].type_id === typeId && Object.keys(done[0][1]).length === 2,
+      `診断の完了：diagnosis_complete が1回（${JSON.stringify(done[0] && done[0][1])}）`);
+    const cta = ev.filter((e) => e[0] === 'cta_click').map((e) => e[1].link_type);
+    check(JSON.stringify(cta) === JSON.stringify(['line', 'company']), `ボタンのクリック：cta_click（${cta.join(', ')}）`);
+    const share = ev.filter((e) => e[0] === 'share_click').map((e) => e[1].share_method);
+    check(JSON.stringify(share) === JSON.stringify(['x', 'line', 'copy_link', 'save_image']), `シェアのクリック：share_click（${share.join(', ')}）`);
+    const allowed = { diagnosis_start: [], question_reach: ['question_number'], diagnosis_complete: ['role_id', 'type_id'], cta_click: ['link_type', 'type_id'], share_click: ['share_method', 'type_id'] };
+    const extra = ev.filter((e) => !allowed[e[0]] || Object.keys(e[1]).some((k) => !allowed[e[0]].includes(k)));
+    check(extra.length === 0, '決めたイベント名・項目以外は送らない' + (extra.length ? '：' + JSON.stringify(extra) : ''));
+    // 回答内容（選択肢・分野の文言）が送信内容に含まれない
+    const answerTexts = Object.values(C.roles).flatMap((r) => r.questions.flatMap((q) => q.options.map((o) => D.plain(o.label))))
+      .concat(C.fields.map((f) => f.label), C.roleQuestion.options.map((o) => o.label));
+    const sentText = JSON.stringify(await page.evaluate(() => (window.dataLayer || []).map((a) => Array.from(a)).filter((a) => a[0] !== 'js')));
+    const leaked = answerTexts.filter((t) => t.length >= 2 && sentText.includes(t));
+    check(leaked.length === 0, '回答内容（選択肢・分野の文言）を送っていない' + (leaked.length ? '：' + leaked.join(' / ') : ''));
+    check(gaRequests.length === 0 && !(await page.$('script[src*="googletagmanager"]')), '手元（localhost）では Google に送信しない');
+
+    // シェアされたリンクの先（タイプ別ページ）もページの表示だけを計測
+    await page.goto(base + 'r/core.html');
+    const rcfg = await page.evaluate(() => (window.dataLayer || []).map((a) => Array.from(a)).filter((a) => a[0] === 'config' || a[0] === 'event').map((a) => a[0]));
+    check(JSON.stringify(rcfg) === JSON.stringify(['config']), 'タイプ別結果ページ：ページ表示のみ（イベントなし）');
+    // SNS用QR
+    await page.goto(base + 'index.html?src=sns');
+    const scfg = await page.evaluate(() => (window.dataLayer || []).map((a) => Array.from(a)).find((a) => a[0] === 'config'));
+    check(new URL(scfg[2].page_location).searchParams.get('utm_source') === 'sns', '流入元 src=sns → 参照元「sns / qr」');
+    await ctx.close();
+  }
+
   await browser.close();
   server.close();
   console.log(failed ? `\n${failed}件の問題があります` : '\nすべてのチェックに合格しました');

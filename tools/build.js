@@ -55,8 +55,49 @@ function footerHtml() {
   return `<footer class="site-footer">
   <p><a href="${esc(L.top)}" target="_blank" rel="noopener">フクマナ（福祉経営を学ぶeラーニング）</a></p>
   <p>${esc(F.operator)}</p>
-  <p>${esc(F.contactLabel)} <a href="mailto:${esc(L.contactEmail)}">${esc(L.contactEmail)}</a></p>
+  <p>${esc(F.contactLabel)} <a href="mailto:${esc(L.contactEmail)}">${esc(L.contactEmail)}</a></p>${analyticsId() && F.analyticsNote ? `
+  <p class="site-footer__note">${esc(F.analyticsNote)}</p>` : ''}
 </footer>`;
+}
+
+// ---------- アクセス解析（GA4） ----------
+function analyticsId() {
+  return (C.analytics && C.analytics.measurementId) || '';
+}
+
+/**
+ * GA4 のタグ。回答内容は送らない（送るイベントは js/app.js の track() と README「アクセス解析」）。
+ * - 手元（localhost）で開いたときは Google に送信しない（テストや確認でデータが混ざらないように）
+ * - URL の ?src=hoikuhaku などを、GA4 の「参照元」（utm_source）として記録する
+ */
+function analyticsTag() {
+  const id = analyticsId();
+  if (!id) return '<!-- アクセス解析なし（data/content.json の analytics.measurementId が空） -->';
+  return `<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag() { dataLayer.push(arguments); }
+  (function () {
+    var local = location.protocol === 'file:' || /^(localhost|127\\.0\\.0\\.1|\\[::1\\])$/.test(location.hostname);
+    if (!local) {
+      var s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=${id}';
+      document.head.appendChild(s);
+    }
+    var cfg = {};
+    try {
+      var u = new URL(location.href);
+      var src = u.searchParams.get('src');
+      if (src && /^[a-z0-9_-]{1,40}$/.test(src) && !u.searchParams.get('utm_source')) {
+        u.searchParams.set('utm_source', src);
+        u.searchParams.set('utm_medium', 'qr');
+        cfg.page_location = u.href;
+      }
+    } catch (e) { /* 古いブラウザでは参照元の付け替えをしない */ }
+    gtag('js', new Date());
+    gtag('config', '${id}', cfg);
+  })();
+</script>`;
 }
 
 // top=true：「福祉経営を学ぶなら フクマナ」（トップ画面）、false：「フクマナ」のみ（設問・結果）
@@ -87,7 +128,10 @@ function buildIndex() {
   </a>`;
   const reHeader = /(<!-- HEADER:START[^>]*-->\n)[\s\S]*?(\n<!-- HEADER:END -->)/;
   if (!reHeader.test(html)) throw new Error('index.html に HEADER:START / HEADER:END の目印が見つかりません');
-  write('index.html', html.replace(re, (_, a, b) => a + block + b).replace(reHeader, (_, a, b) => a + header + b));
+  const reGa = /(<!-- ANALYTICS:START[^>]*-->\n)[\s\S]*?(\n<!-- ANALYTICS:END -->)/;
+  if (!reGa.test(html)) throw new Error('index.html に ANALYTICS:START / ANALYTICS:END の目印が見つかりません');
+  write('index.html', html.replace(re, (_, a, b) => a + block + b).replace(reHeader, (_, a, b) => a + header + b)
+    .replace(reGa, (_, a, b) => a + analyticsTag() + b));
 }
 
 // ---------- タイプ別結果ページ ----------
@@ -121,6 +165,7 @@ ${ogpTags({
   url: `${siteUrl}r/${id}.html`,
   image: `${siteUrl}assets/ogp/${id}.png`
 })}
+${analyticsTag()}
 <link rel="icon" href="../assets/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -207,8 +252,9 @@ async function buildOgpImages() {
 async function buildQr() {
   const QRCode = require('qrcode');
   const targets = [
-    { name: 'qr-hoiku', url: siteUrl + '?field=hoiku' },
-    { name: 'qr-sns', url: siteUrl }
+    // src は GA4 で流入元を区別するための目印（README「アクセス解析」）
+    { name: 'qr-hoiku', url: siteUrl + '?field=hoiku&src=hoikuhaku' },
+    { name: 'qr-sns', url: siteUrl + '?src=sns' }
   ];
   const opt = { errorCorrectionLevel: 'M', margin: 4, color: { dark: '#000000', light: '#ffffff' } };
   for (const t of targets) {
@@ -217,8 +263,9 @@ async function buildQr() {
   }
   write('assets/qr/README.txt',
     `このフォルダのQRコードは tools/build.js が data/content.json の site.url から生成しています。\n` +
-    `qr-hoiku … 保育博用（${siteUrl}?field=hoiku）\n` +
-    `qr-sns   … SNS・チラシ用（${siteUrl}）\n` +
+    `qr-hoiku … 保育博用（${siteUrl}?field=hoiku&src=hoikuhaku）\n` +
+    `qr-sns   … SNS・チラシ用（${siteUrl}?src=sns）\n` +
+    `src は Googleアナリティクスで流入元を区別するための目印です。\n` +
     `印刷にはSVG（拡大しても劣化しません）、SNSにはPNGをお使いください。\n`);
 }
 

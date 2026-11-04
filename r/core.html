@@ -16,6 +16,31 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag() { dataLayer.push(arguments); }
+  (function () {
+    var local = location.protocol === 'file:' || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+    if (!local) {
+      var s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=G-GTDPRT5SN9';
+      document.head.appendChild(s);
+    }
+    var cfg = {};
+    try {
+      var u = new URL(location.href);
+      var src = u.searchParams.get('src');
+      if (src && /^[a-z0-9_-]{1,40}$/.test(src) && !u.searchParams.get('utm_source')) {
+        u.searchParams.set('utm_source', src);
+        u.searchParams.set('utm_medium', 'qr');
+        cfg.page_location = u.href;
+      }
+    } catch (e) { /* 古いブラウザでは参照元の付け替えをしない */ }
+    gtag('js', new Date());
+    gtag('config', 'G-GTDPRT5SN9', cfg);
+  })();
+</script>
 <link rel="icon" href="../assets/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -82,6 +107,7 @@
   <p><a href="https://wwmc.fukunone.org/" target="_blank" rel="noopener">フクマナ（福祉経営を学ぶeラーニング）</a></p>
   <p>運営 合同会社フクノネ</p>
   <p>お問合せ <a href="mailto:support@fukunone.org">support@fukunone.org</a></p>
+  <p class="site-footer__note">アクセス状況の把握のため Googleアナリティクスを使用しています。診断の回答内容は送信しません。</p>
 </footer>
 </body>
 </html>

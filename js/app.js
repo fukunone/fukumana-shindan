@@ -19,6 +19,18 @@
     memo: []       // 「戻る」のときに前の選択を表示するための控え
   };
   var imageJob = null;
+  var sent = { reached: 0, completed: false }; // 同じ診断で同じイベントを二重に送らないための控え
+
+  // ---------- アクセス解析（GA4） ----------
+  // 送るのはイベント名と、設問の番号・立場やタイプのID・ボタンの種類だけ。回答内容（選んだ選択肢）は送らない。
+  // 送るイベントの一覧は README「アクセス解析」を参照。
+  function track(name, params) {
+    if (typeof window.gtag !== 'function') return;
+    window.gtag('event', name, params || {});
+  }
+  function resetTracking() {
+    sent = { reached: 0, completed: false };
+  }
 
   // ---------- 小さなヘルパー ----------
   function esc(s) {
@@ -127,6 +139,8 @@
       state.started = true;
       state.picks = [];
       state.memo = [];
+      resetTracking();
+      track('diagnosis_start');
       go(true);
     });
     focusTitle();
@@ -164,6 +178,11 @@
 
   function renderQuestion() {
     var step = state.picks.length;
+    // 設問への到達（「戻る」で同じ設問を表示し直したときは送らない）
+    if (step + 1 > sent.reached) {
+      sent.reached = step + 1;
+      track('question_reach', { question_number: step + 1 });
+    }
     var total = totalSteps();
     var q = questionAt(step);
     var prev = state.memo[step];
@@ -245,6 +264,10 @@
     var type = r.type;
     var R = C.result;
     var share = shareInfo(r.typeId, type);
+    if (!sent.completed) {
+      sent.completed = true;
+      track('diagnosis_complete', { role_id: currentRoleId(), type_id: r.typeId });
+    }
 
     var courses = r.courses.map(function (id, i) {
       var c = C.courses[id];
@@ -301,10 +324,24 @@
       '</section>'
     ));
 
+    // 次の一歩（LINE・法人フォーム・経営コース）とシェアボタンのクリック
+    app.querySelectorAll('[data-cta]').forEach(function (a) {
+      a.addEventListener('click', function () {
+        track('cta_click', { link_type: a.getAttribute('data-cta'), type_id: r.typeId });
+      });
+    });
+    [['share-x', 'x'], ['share-line', 'line'], ['share-copy', 'copy_link'], ['share-image', 'save_image']].forEach(function (s) {
+      document.getElementById(s[0]).addEventListener('click', function () {
+        track('share_click', { share_method: s[1], type_id: r.typeId });
+      });
+    });
+
     document.getElementById('share-copy').addEventListener('click', function () { copyText(share.url); });
     document.getElementById('retry').addEventListener('click', function () {
       state.picks = [];
       state.memo = [];
+      resetTracking();
+      track('diagnosis_start');
       state.started = true;
       history.replaceState({ started: false, n: 0 }, '');
       go(true);
@@ -462,7 +499,8 @@
     document.getElementById('footer').innerHTML =
       '<p><a href="' + esc(L.top) + '" target="_blank" rel="noopener">フクマナ（福祉経営を学ぶeラーニング）</a></p>' +
       '<p>' + esc(F.operator) + '</p>' +
-      '<p>' + esc(F.contactLabel) + ' <a href="mailto:' + esc(L.contactEmail) + '">' + esc(L.contactEmail) + '</a></p>';
+      '<p>' + esc(F.contactLabel) + ' <a href="mailto:' + esc(L.contactEmail) + '">' + esc(L.contactEmail) + '</a></p>' +
+      (C.analytics && C.analytics.measurementId && F.analyticsNote ? '<p class="site-footer__note">' + esc(F.analyticsNote) + '</p>' : '');
   }
 
   // ---------- 起動 ----------
