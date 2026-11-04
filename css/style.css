@@ -74,6 +74,7 @@ button { font: inherit; color: inherit; }
   line-height: 1.6;
 }
 .site-footer p { margin: 4px 0; }
+.site-footer .site-footer__note { margin-top: 12px; }
 
 .loading { text-align: center; color: var(--color-sub); padding: 48px 0; }
 
