@@ -145,13 +145,14 @@ check(['kaigyo', 'finance'].every((c) => D.diagnose(C, 'A', [2, 0, 2, 0, 0, 0]).
 
 // ---------- 3・4. サイトのファイルを走査 ----------
 function siteFiles() {
-  const out = ['index.html', 'data/content.json', 'css/style.css'];
+  const out = ['index.html', 'sw.js', 'data/content.json', 'css/style.css'];
   for (const dir of ['js', 'r']) {
     fs.readdirSync(path.join(ROOT, dir)).forEach((f) => out.push(`${dir}/${f}`));
   }
   return out;
 }
-const files = siteFiles().map((f) => ({ f, s: fs.readFileSync(path.join(ROOT, f), 'utf8') }));
+// index.html に埋め込んだ見た目（css/style.css と同じ内容）は、CSS ファイルと同じく文言のチェックから外す
+const files = siteFiles().map((f) => ({ f, s: fs.readFileSync(path.join(ROOT, f), 'utf8').replace(/<style>[\s\S]*?<\/style>/g, (m) => m.replace(/[^\n]/g, '')) }));
 
 console.log('\n[3] 禁止表現・価格表記・制度/数値');
 const BANNED = [
@@ -195,6 +196,22 @@ for (const id of Object.keys(C.types)) {
   const html = fs.readFileSync(path.join(ROOT, `r/${id}.html`), 'utf8');
   check(html.includes(`content="${C.site.url}assets/ogp/${id}.png"`) && fs.existsSync(path.join(ROOT, `assets/ogp/${id}.png`)),
     `r/${id}.html に OGP画像（assets/ogp/${id}.png）が設定されている`);
+}
+
+// ---------- 4b. 電波対策（Service Worker） ----------
+console.log('\n[4b] 電波対策（Service Worker・トップ画面の書き出し）');
+{
+  const { swBlock, RE_SW, precacheFiles } = require('./build');
+  const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
+  let expected = null, err = '';
+  try { expected = swBlock(ROOT); } catch (e) { err = e.message; }
+  const current = (sw.match(RE_SW) || [])[0] || '';
+  check(expected && current.includes(expected), 'sw.js の保存ファイル一覧と版が、今のファイルの中身と一致している（npm run build で作り直せます）' + (err ? '：' + err : ''));
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  check(html.includes(fs.readFileSync(path.join(ROOT, 'css/style.css'), 'utf8').trim()), 'index.html に css/style.css の最新の中身が埋め込まれている');
+  check(/<button[^>]*id="start"[^>]*data-static/.test(html) && html.includes(D.esc(C.top.lead)), 'index.html にトップ画面が書き出されている（JavaScript を待たずに表示）');
+  check(precacheFiles().every((f) => !/^https?:/.test(f)), '端末に保存するのはこのサイトのファイルだけ（アナリティクスなど外部は含まない）');
+  check(fs.readFileSync(path.join(ROOT, '.github/workflows/pages.yml'), 'utf8').includes(' sw.js '), '公開するファイルに sw.js が含まれている');
 }
 
 // ---------- 5. 配色のコントラスト ----------

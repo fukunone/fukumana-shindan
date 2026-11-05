@@ -1,0 +1,42 @@
+{
+  "url": "https://fukunone.github.io/fukumana-shindan/?field=hoiku&src=hoikuhaku",
+  "modules": 37,
+  "report": [
+    {
+      "job": "卓上POP（家庭・事務所のプリンター用）",
+      "file": "print/pdf/pop-a4_home.pdf",
+      "pageMm": "210×297",
+      "qrMm": "103",
+      "moduleMm": "2.80",
+      "minDpi": 877,
+      "maxDist": 2
+    },
+    {
+      "job": "卓上POP（印刷会社入稿用）",
+      "file": "print/pdf/pop-a4_press.pdf",
+      "pageMm": "240×327",
+      "qrMm": "112",
+      "moduleMm": "3.03",
+      "minDpi": 749,
+      "maxDist": 2
+    },
+    {
+      "job": "QRカード（A4・10面付け）",
+      "file": "print/pdf/qr-card_a4-10up.pdf",
+      "pageMm": "210×297",
+      "qrMm": "34",
+      "moduleMm": "0.92",
+      "minDpi": 749,
+      "maxDist": 0.5
+    },
+    {
+      "job": "QRカード（印刷会社入稿用）",
+      "file": "print/pdf/qr-card_press.pdf",
+      "pageMm": "121×85",
+      "qrMm": "34",
+      "moduleMm": "0.92",
+      "minDpi": 749,
+      "maxDist": 0.5
+    }
+  ]
+}
