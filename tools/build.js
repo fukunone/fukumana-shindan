@@ -5,6 +5,8 @@
  *   - r/<タイプ>.html … タイプ別の結果ページ（シェアされたリンクの先）
  *   - assets/ogp/*.png … OGP画像（1200×630）
  *   - assets/qr/*.png, *.svg … QRコード（保育博用・SNS用）
+ *   - assets/opt/*.webp … 画面に表示する軽い画像（元の PNG を縮小して WebP にしたもの）
+ *   - sw.js の保存ファイル一覧と版（電波が切れても診断を続けられるように端末に保存するファイル）
  *
  * 使い方:  npm run build            （すべて）
  *          npm run build -- --no-images   （HTMLだけ。画像を作らない）
@@ -12,6 +14,7 @@
 'use strict';
 
 const fs = require('fs');
+const crypto = require('crypto');
 const path = require('path');
 const http = require('http');
 const { validate } = require('./validate');
@@ -79,10 +82,15 @@ function analyticsTag() {
   (function () {
     var local = location.protocol === 'file:' || /^(localhost|127\\.0\\.0\\.1|\\[::1\\])$/.test(location.hostname);
     if (!local) {
-      var s = document.createElement('script');
-      s.async = true;
-      s.src = 'https://www.googletagmanager.com/gtag/js?id=${id}';
-      document.head.appendChild(s);
+      // 画面の表示を優先し、ページの読み込みが終わってから計測用のスクリプトを読み込む。
+      // それまでの記録（ページの表示・診断の開始など）は dataLayer にたまり、読み込み後にまとめて送られる
+      var load = function () {
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=${id}';
+        document.head.appendChild(s);
+      };
+      if (document.readyState === 'complete') load(); else window.addEventListener('load', load);
     }
     var cfg = {};
     try {
@@ -107,6 +115,32 @@ function logoTag(prefix, top) {
     : `<img src="${prefix}${esc(C.images.logo)}" alt="フクマナ" class="site-header__logo site-header__logo--simple">`;
 }
 
+// ---------- 画面用の軽い画像（assets/opt/*.webp） ----------
+// 表示サイズの約3倍（スマホの高精細な画面でもぼやけない大きさ）に縮小し、WebP にする
+const OPT_SIZE = { mascot: 720, logo: 420, icon: 300 };
+// 画質（1 は劣化なし）。アイコンは結果画像の中で白い背景との境目を見分けるため劣化なしにする
+const OPT_QUALITY = { mascot: 0.85, logo: 0.9, icon: 1 };
+function optName(file) { return 'assets/opt/' + file.replace(/\.png$/i, '.webp'); }
+function appImages() {
+  const I = C.images;
+  const list = [
+    { file: I.logo, kind: 'logo' }, { file: I.logoTop, kind: 'logo' }, { file: I.icon, kind: 'icon' },
+    { file: I.top, kind: 'mascot' }, { file: I.basicQuestion, kind: 'mascot' }, { file: I.question, kind: 'mascot' }
+  ];
+  Object.values(C.roles).forEach((r) => r.questions.forEach((q) => { if (q.mascot) list.push({ file: q.mascot, kind: 'mascot' }); }));
+  Object.values(C.types).forEach((t) => list.push({ file: t.mascot, kind: 'mascot' }));
+  const seen = new Set();
+  return list.filter((x) => x.file && !seen.has(x.file) && seen.add(x.file));
+}
+// WebP を表示できる端末は WebP、できない端末は元の PNG。
+// inline=true のときは WebP を HTML に埋め込む（トップ画面のフクノネコ。通信を1回減らして早く表示するため）
+function pictureTag(prefix, file, imgAttrs, inline) {
+  const src = inline
+    ? 'data:image/webp;base64,' + fs.readFileSync(path.join(ROOT, optName(file))).toString('base64')
+    : prefix + optName(file).replace(/^assets\//, '');
+  return `<picture><source srcset="${esc(src)}" type="image/webp"><img src="${prefix}${esc(file)}" ${imgAttrs}></picture>`;
+}
+
 function groupIds() {
   return Object.keys(C.groups).filter((k) => !k.startsWith('_'));
 }
@@ -124,14 +158,25 @@ function buildIndex() {
   const re = /(<!-- OGP:START[^>]*-->\n)[\s\S]*?(\n<!-- OGP:END -->)/;
   if (!re.test(html)) throw new Error('index.html に OGP:START / OGP:END の目印が見つかりません');
   const header = `  <a class="site-header__brand" href="${esc(C.links.top)}" target="_blank" rel="noopener">
-    ${logoTag('assets/', true)}
+    ${pictureTag('assets/', C.images.logoTop, 'alt="福祉経営を学ぶなら フクマナ" class="site-header__logo"')}
   </a>`;
+  // トップ画面（JavaScript の読み込みを待たずに表示する。js/app.js が起動したらボタンが使えるようになる）
+  const top = D.topHtml(C,
+    pictureTag('assets/', C.images.top, 'class="mascot mascot--top" alt="フクマナ公式キャラクター フクノネコ" width="240" height="240"', true),
+    ` data-static data-label="${esc(C.top.start)}" onclick="window.__startPending=true;this.disabled=true;this.textContent='準備中…'"`);
+  // 見た目（css/style.css）を埋め込む
+  const css = fs.readFileSync(path.join(ROOT, 'css/style.css'), 'utf8').replace(/<\/style/gi, '<\\/style');
+  const reStyle = /(<!-- STYLE:START[^>]*-->\n)[\s\S]*?(<!-- STYLE:END -->)/;
+  if (!reStyle.test(html)) throw new Error('index.html に STYLE:START / STYLE:END の目印が見つかりません');
+  const reTop = /(<!-- TOP:START[^>]*-->\n)[\s\S]*?(\n?<!-- TOP:END -->)/;
+  if (!reTop.test(html)) throw new Error('index.html に TOP:START / TOP:END の目印が見つかりません');
   const reHeader = /(<!-- HEADER:START[^>]*-->\n)[\s\S]*?(\n<!-- HEADER:END -->)/;
   if (!reHeader.test(html)) throw new Error('index.html に HEADER:START / HEADER:END の目印が見つかりません');
   const reGa = /(<!-- ANALYTICS:START[^>]*-->\n)[\s\S]*?(\n<!-- ANALYTICS:END -->)/;
   if (!reGa.test(html)) throw new Error('index.html に ANALYTICS:START / ANALYTICS:END の目印が見つかりません');
   write('index.html', html.replace(re, (_, a, b) => a + block + b).replace(reHeader, (_, a, b) => a + header + b)
-    .replace(reGa, (_, a, b) => a + analyticsTag() + b));
+    .replace(reGa, (_, a, b) => a + analyticsTag() + b).replace(reTop, (_, a, b) => a + top + '\n' + b.replace(/^\n/, ''))
+    .replace(reStyle, (_, a, b) => a + '<style>\n' + css.trim() + '\n</style>\n' + b));
 }
 
 // ---------- タイプ別結果ページ ----------
@@ -167,10 +212,10 @@ ${ogpTags({
 })}
 ${analyticsTag()}
 <link rel="icon" href="../assets/favicon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap">
 <link rel="stylesheet" href="../css/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap" crossorigin media="print" onload="this.media='all'">
 </head>
 <body>
 <header class="site-header">
@@ -211,7 +256,7 @@ ${footerHtml()}
 }
 
 // ---------- 画像（OGP・QR） ----------
-const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.json': 'application/json' };
+const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.webp': 'image/webp', '.json': 'application/json' };
 
 function serve() {
   return new Promise((resolve) => {
@@ -249,6 +294,62 @@ async function buildOgpImages() {
   }
 }
 
+async function buildOptImages() {
+  const { chromium } = require('playwright');
+  const server = await serve();
+  const base = `http://127.0.0.1:${server.address().port}/`;
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage();
+    await page.goto(base + 'tools/ogp.html');
+    for (const { file, kind } of appImages()) {
+      const dataUrl = await page.evaluate(async ({ src, max, quality }) => {
+        const img = new Image();
+        img.src = src;
+        await img.decode();
+        const r = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.naturalWidth * r);
+        c.height = Math.round(img.naturalHeight * r);
+        const ctx = c.getContext('2d');
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, c.width, c.height);
+        return c.toDataURL('image/webp', quality);
+      }, { src: base + 'assets/' + encodeURIComponent(file), max: OPT_SIZE[kind], quality: OPT_QUALITY[kind] });
+      if (!dataUrl.startsWith('data:image/webp')) throw new Error('WebP に変換できませんでした：' + file);
+      write(optName(file), Buffer.from(dataUrl.split(',')[1], 'base64'));
+    }
+  } finally {
+    await browser.close();
+    server.close();
+  }
+}
+
+// ---------- Service Worker（sw.js）の保存ファイル一覧と版 ----------
+function precacheFiles() {
+  return ['index.html', 'js/diagnosis.js', 'js/app.js', 'js/card.js', 'data/content.json', 'assets/favicon.png']
+    .concat(appImages().map((x) => optName(x.file)));
+}
+function swBlock(root) {
+  const files = precacheFiles();
+  const hash = crypto.createHash('sha256');
+  for (const f of files) {
+    const p = path.join(root, f);
+    if (!fs.existsSync(p)) throw new Error(`sw.js に保存するファイルがありません：${f}（npm run build で作り直してください）`);
+    hash.update(f + '\0').update(fs.readFileSync(p)).update('\0');
+  }
+  return `var VERSION = '${hash.digest('hex').slice(0, 12)}';\nvar FILES = ${JSON.stringify(files, null, 2).replace(/\n/g, '\n')};`;
+}
+const RE_SW = /(\/\/ PRECACHE:START[^\n]*\n)[\s\S]*?(\n\/\/ PRECACHE:END)/;
+function buildServiceWorker(root = ROOT) {
+  const file = path.join(root, 'sw.js');
+  const src = fs.readFileSync(file, 'utf8');
+  if (!RE_SW.test(src)) throw new Error('sw.js に PRECACHE:START / PRECACHE:END の目印が見つかりません');
+  const out = src.replace(RE_SW, (_, a, b) => a + swBlock(root) + b);
+  fs.writeFileSync(file, out);
+  if (root === ROOT) console.log('  書き出し: sw.js');
+}
+
 async function buildQr() {
   const QRCode = require('qrcode');
   const targets = [
@@ -269,6 +370,9 @@ async function buildQr() {
     `印刷にはSVG（拡大しても劣化しません）、SNSにはPNGをお使いください。\n`);
 }
 
+module.exports = { buildServiceWorker, swBlock, precacheFiles, RE_SW };
+if (require.main !== module) return;
+
 (async () => {
   const errors = validate(C, ROOT);
   if (errors.length) {
@@ -276,12 +380,15 @@ async function buildQr() {
     process.exit(1);
   }
   console.log('公開URL:', siteUrl);
-  buildIndex();
-  Object.keys(C.types).forEach(buildTypePage);
   if (withImages) {
     await buildOgpImages();
+    await buildOptImages();
     await buildQr();
   }
+  buildIndex(); // トップ画面に assets/opt の画像を埋め込むため、画像の後に作る
+  Object.keys(C.types).forEach(buildTypePage);
+  // 画像・文言・プログラムのどれかが変わると、sw.js の版が変わり、次に開いたときに新しい版へ切り替わる
+  buildServiceWorker();
   console.log('完了しました。');
 })().catch((e) => {
   console.error(e);

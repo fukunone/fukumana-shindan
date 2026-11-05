@@ -62,6 +62,8 @@ button { font: inherit; color: inherit; }
   padding: 12px 16px;
   padding-top: max(12px, env(safe-area-inset-top));
 }
+/* 画像は <picture>（WebP と PNG の出し分け）で囲むことがある */
+picture { display: block; }
 .site-header__logo { display: block; height: 64px; width: auto; margin: -6px 0; } /* ロゴ画像の余白ぶん詰める */
 .site-header__logo--simple { height: 60px; margin: -12px 0; } /* 「フクマナ」のみのロゴ（設問・結果） */
 

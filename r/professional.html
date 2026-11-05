@@ -22,10 +22,15 @@
   (function () {
     var local = location.protocol === 'file:' || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
     if (!local) {
-      var s = document.createElement('script');
-      s.async = true;
-      s.src = 'https://www.googletagmanager.com/gtag/js?id=G-GTDPRT5SN9';
-      document.head.appendChild(s);
+      // 画面の表示を優先し、ページの読み込みが終わってから計測用のスクリプトを読み込む。
+      // それまでの記録（ページの表示・診断の開始など）は dataLayer にたまり、読み込み後にまとめて送られる
+      var load = function () {
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-GTDPRT5SN9';
+        document.head.appendChild(s);
+      };
+      if (document.readyState === 'complete') load(); else window.addEventListener('load', load);
     }
     var cfg = {};
     try {
@@ -42,10 +47,10 @@
   })();
 </script>
 <link rel="icon" href="../assets/favicon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap">
 <link rel="stylesheet" href="../css/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap" crossorigin media="print" onload="this.media='all'">
 </head>
 <body>
 <header class="site-header">

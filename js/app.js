@@ -6,7 +6,6 @@
   'use strict';
 
   var D = window.FukumanaDiagnosis;
-  var Card = window.FukumanaCard;
   var app = document.getElementById('app');
   var C = null; // content.json
 
@@ -45,7 +44,18 @@
   }
   function baseUrl() { return new URL('./', location.href.split('#')[0]).href.split('?')[0]; }
   function displayUrl(u) { return u.replace(/^https?:\/\//, '').replace(/\/$/, ''); }
-  function img(file) { return 'assets/' + file; }
+  // 画像は軽い WebP（assets/opt/、tools/build.js が作成）を使う。WebP を表示できない古い端末では元の PNG
+  var webp = false;
+  function img(file) { return webp ? 'assets/opt/' + file.replace(/\.png$/, '.webp') : 'assets/' + file; }
+  function detectWebp() {
+    return new Promise(function (resolve) {
+      var i = new Image();
+      i.onload = function () { resolve(i.width === 1); };
+      i.onerror = function () { resolve(false); };
+      // 透過つき WebP（1×1）
+      i.src = 'data:image/webp;base64,UklGRhoAAABXRUJQVlA4TA0AAAAvAAAAEAcQERGIiP4HAA==';
+    });
+  }
   // 読点ごとに改行しないかたまりにする（「支える／人。」のような1文字だけの改行を防ぐ）
   function phraseHtml(text) {
     return D.phrases(text).map(function (p) { return '<span class="phrase">' + esc(p) + '</span>'; }).join('');
@@ -69,12 +79,61 @@
     return fieldOffset() + 1 + qn;
   }
 
-  function toast(msg) {
+  function toast(msg, ms) {
     var t = document.getElementById('toast');
     t.textContent = msg;
     t.classList.add('is-show');
     clearTimeout(toast.timer);
-    toast.timer = setTimeout(function () { t.classList.remove('is-show'); }, 2200);
+    toast.timer = setTimeout(function () { t.classList.remove('is-show'); }, ms || 2200);
+  }
+
+  // ---------- 電波が届いていないとき ----------
+  var OFFLINE_FALLBACK = '電波が戻ったら、もう一度押してください';
+  function offlineMessage() { return (C && C.offline && C.offline.message) || OFFLINE_FALLBACK; }
+  function isOffline() { return navigator.onLine === false; }
+
+  // LINE・法人フォーム・シェアなど、外部のページへ進むリンクは、電波がないときは開かずに案内を出す
+  document.addEventListener('click', function (e) {
+    if (!isOffline()) return;
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var u;
+    try { u = new URL(a.href, location.href); } catch (err) { return; }
+    if (!/^https?:$/.test(u.protocol) || u.origin === location.origin) return; // メールのリンクなどはそのまま開く
+    e.preventDefault();
+    e.stopPropagation(); // クリックの記録（アクセス解析）も送らない
+    toast(offlineMessage(), 4000);
+  }, true);
+
+  // ---------- 結果画像の描画（js/card.js）は、診断を始めたときに読み込む ----------
+  var cardJob = null;
+  function loadCard() {
+    if (window.FukumanaCard) return Promise.resolve(window.FukumanaCard);
+    if (!cardJob) {
+      cardJob = new Promise(function (resolve, reject) {
+        var s = document.createElement('script');
+        s.src = 'js/card.js';
+        s.onload = function () { resolve(window.FukumanaCard); };
+        s.onerror = function () { cardJob = null; s.remove(); reject(new Error('card.js')); };
+        document.head.appendChild(s);
+      });
+    }
+    return cardJob;
+  }
+
+  // 診断を始めたら、結果画面までに使う画像を先に読み込んでおく（途中で電波が切れても表示できるように）
+  var prefetched = false;
+  function prefetchAssets() {
+    loadCard().catch(function () {});
+    if (prefetched) return;
+    prefetched = true;
+    var files = [C.images.basicQuestion, C.images.question, C.images.logo];
+    Object.keys(C.roles).forEach(function (k) { C.roles[k].questions.forEach(function (q) { if (q.mascot) files.push(q.mascot); }); });
+    Object.keys(C.types).forEach(function (k) { files.push(C.types[k].mascot); });
+    files.filter(function (f, i) { return f && files.indexOf(f) === i; }).forEach(function (f) {
+      var i = new Image();
+      i.src = img(f);
+    });
   }
 
   // ---------- 画面遷移 ----------
@@ -99,6 +158,9 @@
   function setHeaderLogo(isTop) {
     var logo = document.querySelector('.site-header__logo');
     if (!logo) return;
+    // 書き出したヘッダーの <picture> の候補は使わず、ここで決めた画像にする
+    var sources = logo.parentNode.querySelectorAll('source');
+    for (var i = 0; i < sources.length; i++) sources[i].remove();
     var file = isTop ? C.images.logoTop : C.images.logo;
     if (logo.getAttribute('src') !== img(file)) logo.setAttribute('src', img(file));
     logo.setAttribute('alt', isTop ? '福祉経営を学ぶなら フクマナ' : 'フクマナ');
@@ -120,30 +182,35 @@
 
   // ---------- トップ ----------
   function renderTop() {
-    var t = C.top;
-    app.innerHTML = '';
-    app.appendChild(el(
-      '<section class="screen screen--top">' +
-        '<img class="mascot mascot--top" src="' + esc(img(C.images.top)) + '" alt="' + MASCOT_ALT + '" width="240" height="240">' +
-        '<p class="eyebrow">' + esc(t.eyebrow) + '</p>' +
-        '<h1 class="top-title" tabindex="-1" data-focus>' + t.title.split(' ').map(function (w) { return '<span class="nowrap">' + esc(w) + '</span>'; }).join(' ') + '</h1>' +
-        '<p class="lead">' + esc(t.lead) + '</p>' +
-        '<ul class="badges">' +
-          '<li class="badge">⏱ ' + esc(t.time) + '</li>' +
-        '</ul>' +
-        '<p class="privacy">🔒 ' + esc(t.privacy) + '</p>' +
-        '<button type="button" class="btn btn--primary btn--large" id="start">' + esc(t.start) + '</button>' +
-      '</section>'
-    ));
-    document.getElementById('start').addEventListener('click', function () {
-      state.started = true;
-      state.picks = [];
-      state.memo = [];
-      resetTracking();
-      track('diagnosis_start');
-      go(true);
-    });
-    focusTitle();
+    // index.html に書き出したトップ画面（data-static）があれば、作り直さずにそのまま使う（画面がちらつかないように）
+    var staticStart = app.querySelector('#start[data-static]');
+    if (staticStart) {
+      staticStart.removeAttribute('data-static');
+      staticStart.removeAttribute('onclick');
+      staticStart.disabled = false;
+      staticStart.textContent = C.top.start;
+    } else {
+      app.innerHTML = '';
+      app.appendChild(el(D.topHtml(C,
+        '<img class="mascot mascot--top" src="' + esc(img(C.images.top)) + '" alt="' + MASCOT_ALT + '" width="240" height="240">')));
+    }
+    document.getElementById('start').addEventListener('click', start);
+    if (!staticStart) focusTitle();
+    // 読み込み中に「診断をはじめる」が押されていたら、そのまま始める
+    if (window.__startPending) {
+      window.__startPending = false;
+      start();
+    }
+  }
+
+  function start() {
+    state.started = true;
+    state.picks = [];
+    state.memo = [];
+    resetTracking();
+    track('diagnosis_start');
+    prefetchAssets();
+    go(true);
   }
 
   // ---------- 質問 ----------
@@ -381,11 +448,15 @@
   // ---------- 結果画像 ----------
   function makeImage(typeId, type) {
     var text = C.site.shortTitle + D.plain(type.name) + D.plain(type.catch) + 'わたしの学びタイプはあなたも約2分で診断できます' + displayUrl(baseUrl()) + '#フクマナ福祉経営';
-    return Promise.all([
-      Card.loadImage(img(type.mascot)),
-      Card.loadImage(img(C.images.icon)),
-      Card.waitFonts(text)
-    ]).then(function (res) {
+    var Card;
+    // WebP を読めなかったときは元の PNG で描く
+    function load(file) {
+      return Card.loadImage(img(file)).then(function (i) { return i || Card.loadImage('assets/' + file); });
+    }
+    return loadCard().then(function (card) {
+      Card = card;
+      return Promise.all([load(type.mascot), load(C.images.icon), Card.waitFonts(text)]);
+    }).then(function (res) {
       var canvas = document.createElement('canvas');
       Card.draw(canvas, {
         layout: 'square',
@@ -503,20 +574,83 @@
       (C.analytics && C.analytics.measurementId && F.analyticsNote ? '<p class="site-footer__note">' + esc(F.analyticsNote) + '</p>' : '');
   }
 
+  // ---------- Service Worker（一度開けば、電波が切れても最後まで診断できるように） ----------
+  function setupServiceWorker() {
+    if (!('serviceWorker' in navigator) || !window.isSecureContext) return;
+    var hadController = !!navigator.serviceWorker.controller;
+    // サイトが更新されると、新しい版の Service Worker に切り替わる。
+    // トップ画面ならすぐに新しい版で開き直す（診断の途中なら、次に開いたときに新しい版になる）
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (!hadController) { hadController = true; return; } // 初めて開いたとき（更新ではない）
+      if (!state.started) location.reload();
+    });
+    // トップ画面の表示を優先し、表示が終わってから保存を始める
+    var registered = false;
+    function register() {
+      if (registered) return;
+      registered = true;
+      navigator.serviceWorker.register('sw.js').catch(function () { /* 保存できなくても診断はできる */ });
+    }
+    var mascot = app.querySelector('.mascot--top');
+    if (document.readyState === 'complete' || (mascot && mascot.complete)) return register();
+    window.addEventListener('load', register);
+    if (mascot) mascot.addEventListener('load', register);
+    if (mascot) mascot.addEventListener('error', register);
+    setTimeout(register, 8000);
+  }
+
   // ---------- 起動 ----------
-  fetch('data/content.json', { cache: 'no-cache' })
-    .then(function (res) {
+  // 文言（data/content.json）は index.html の中で先に読み込みを始めている（window.__content）
+  function fetchContent() {
+    var early = window.__content;
+    window.__content = null;
+    return early || fetch('data/content.json', { cache: 'no-cache' }).then(function (res) {
       if (!res.ok) throw new Error(res.status);
       return res.json();
-    })
-    .then(function (json) {
-      C = json;
-      if (presetFieldId && !D.findField(C, presetFieldId)) presetFieldId = null;
-      renderFooter();
-      history.replaceState({ started: false, n: 0 }, '');
-      render();
-    })
-    .catch(function () {
-      app.innerHTML = '<p class="loading">読み込みに失敗しました。ページを再読み込みしてください。</p>';
     });
+  }
+
+  var tries = 0, booting = false;
+  function boot() {
+    if (C || booting) return;
+    booting = true;
+    Promise.all([fetchContent(), detectWebp()])
+      .then(function (res) {
+        booting = false;
+        C = res[0];
+        webp = res[1];
+        if (presetFieldId && !D.findField(C, presetFieldId)) presetFieldId = null;
+        renderFooter();
+        history.replaceState({ started: false, n: 0 }, '');
+        render();
+        document.documentElement.setAttribute('data-ready', '1');
+        setupServiceWorker();
+      })
+      .catch(function () {
+        booting = false;
+        tries++;
+        var staticStart = app.querySelector('#start[data-static]');
+        if (staticStart) {
+          // トップ画面は表示できているので、そのまま読み込みをやり直す。
+          // 「診断をはじめる」が押されていたら、押す前の状態に戻して案内する
+          var cancel = function () {
+            if (!window.__startPending) return;
+            window.__startPending = false;
+            staticStart.disabled = false;
+            staticStart.textContent = staticStart.getAttribute('data-label') || staticStart.textContent;
+            toast(offlineMessage(), 4000);
+          };
+          cancel();
+          if (!staticStart.__offlineGuard) {
+            staticStart.__offlineGuard = true;
+            staticStart.addEventListener('click', function () { if (isOffline()) cancel(); });
+          }
+        } else {
+          app.innerHTML = '<p class="loading">読み込みに失敗しました。ページを再読み込みしてください。</p>';
+        }
+        setTimeout(boot, Math.min(2000 * tries, 10000));
+      });
+  }
+  boot();
+  window.addEventListener('online', function () { if (!C) { tries = 0; boot(); } });
 })();

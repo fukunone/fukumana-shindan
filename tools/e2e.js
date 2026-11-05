@@ -53,6 +53,9 @@ function answersFor(typeId) {
   }
 }
 
+// 画面に表示する画像は、軽い WebP（assets/opt/、tools/build.js が作成）
+const opt = (file) => 'assets/opt/' + file.replace(/\.png$/, '.webp');
+
 async function clickOption(page, index) {
   await page.locator('.option').nth(index).click();
   await page.waitForTimeout(220);
@@ -126,14 +129,14 @@ async function layoutReport(page) {
     const q3 = await page.textContent('.question');
     check(q3.includes('事業所・施設') && roleNoteB.includes('施設長'), `障がい福祉の呼び方：「${q3}」`);
     const q3img = await page.$eval('.mascot--question', (i) => i.getAttribute('src'));
-    check(q3img === 'assets/' + C.images.question, `ふつうの質問のフクノネコ：${q3img}`);
+    check(q3img === opt(C.images.question), `ふつうの質問のフクノネコ：${q3img}`);
 
     // 戻るボタン
     await page.click('#back');
     await page.waitForTimeout(100);
     const backQ = await page.textContent('.question');
     const worryImg = await page.$eval('.mascot--question', (i) => i.getAttribute('src'));
-    check(worryImg === 'assets/' + C.roles.A.questions[1].mascot, `悩みを聞く質問のフクノネコ：${worryImg}`);
+    check(worryImg === opt(C.roles.A.questions[1].mascot), `悩みを聞く質問のフクノネコ：${worryImg}`);
     const sel = await page.locator('.option.is-selected').count();
     check(backQ === C.roles.A.questions[1].text && sel === 1, '戻るボタンで前の質問に戻り、前回の選択が表示される');
     await page.goBack();
@@ -154,9 +157,9 @@ async function layoutReport(page) {
       const groupShown = await page.evaluate((n) => document.body.textContent.includes(n), C.groups[C.types[typeId].group].name);
       check(!groupShown, '  グループ名のラベルは表示しない');
       const logo = await page.getAttribute('.site-header__logo', 'src');
-      check(logo === 'assets/' + C.images.logo, `  結果画面のヘッダーロゴ：${logo}`);
+      check(logo === opt(C.images.logo), `  結果画面のヘッダーロゴ：${logo}`);
       const mascot = await page.$eval('.mascot--result', (i) => [i.getAttribute('src'), i.naturalWidth]);
-      check(mascot[0] === 'assets/' + C.types[typeId].mascot && mascot[1] > 0, `  フクノネコ：${mascot[0]}`);
+      check(mascot[0] === opt(C.types[typeId].mascot) && mascot[1] > 0, `  フクノネコ：${mascot[0]}`);
       const ctas = await page.$$eval('[data-cta]', (els) => els.map((e) => e.getAttribute('href')));
       const expectedCtas = C.types[typeId].ctas.map((c) => C.links[c.link]);
       check(name === C.types[typeId].name && JSON.stringify(ctas) === JSON.stringify(expectedCtas),
@@ -171,13 +174,13 @@ async function layoutReport(page) {
     const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
     await page.goto(base + 'index.html?field=hoiku');
     await page.waitForSelector('#start');
-    check((await page.getAttribute('.site-header__logo', 'src')) === 'assets/' + C.images.logoTop, 'トップ画面のヘッダーは「福祉経営を学ぶなら フクマナ」のロゴ');
+    check((await page.getAttribute('.site-header__logo', 'src')) === opt(C.images.logoTop), 'トップ画面のヘッダーは「福祉経営を学ぶなら フクマナ」のロゴ');
     await page.click('#start');
     const q = await page.textContent('.question');
     const note = await page.locator('.option__sub').nth(0).textContent();
-    check((await page.getAttribute('.site-header__logo', 'src')) === 'assets/' + C.images.logo, '設問画面のヘッダーは「フクマナ」のみのロゴ');
+    check((await page.getAttribute('.site-header__logo', 'src')) === opt(C.images.logo), '設問画面のヘッダーは「フクマナ」のみのロゴ');
     const roleImg = await page.$eval('.mascot--question', (i) => i.getAttribute('src'));
-    check(roleImg === 'assets/' + C.images.basicQuestion, `立場の質問のフクノネコ：${roleImg}`);
+    check(roleImg === opt(C.images.basicQuestion), `立場の質問のフクノネコ：${roleImg}`);
     check(q === C.roleQuestion.text && note.includes('保育士'), `Q1（分野）をスキップし、立場の質問から開始（${note}）`);
     await clickOption(page, 0);
     await clickOption(page, 0);

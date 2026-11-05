@@ -34,6 +34,11 @@
     "measurementId": "G-GTDPRT5SN9"
   },
 
+  "offline": {
+    "_説明": "電波が届いていないときに、LINE・法人フォームなど外部のページへ進むボタンや「診断をはじめる」を押したときの案内です。",
+    "message": "電波が戻ったら、もう一度押してください"
+  },
+
   "links": {
     "line": "https://lin.ee/ru4M1zks",
     "company": "https://fukunone.org/company-plan/",

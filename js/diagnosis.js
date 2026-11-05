@@ -138,5 +138,32 @@
     };
   }
 
-  return { fill: fill, plain: plain, phrases: phrases, findField: findField, diagnose: diagnose, GENERIC_FIELD: GENERIC_FIELD };
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  /**
+   * トップ画面の HTML。tools/build.js が index.html に書き出し（JavaScript の読み込みを待たずに表示するため）、
+   * js/app.js も同じものを使います。
+   * @param mascot     フクノネコの <img>（または <picture>）タグ
+   * @param startAttrs 「診断をはじめる」ボタンに付ける属性（書き出し時の「準備中」表示など）
+   */
+  function topHtml(content, mascot, startAttrs) {
+    var t = content.top;
+    return '<section class="screen screen--top">' +
+        mascot +
+        '<p class="eyebrow">' + esc(t.eyebrow) + '</p>' +
+        '<h1 class="top-title" tabindex="-1" data-focus>' + t.title.split(' ').map(function (w) { return '<span class="nowrap">' + esc(w) + '</span>'; }).join(' ') + '</h1>' +
+        '<p class="lead">' + esc(t.lead) + '</p>' +
+        '<ul class="badges">' +
+          '<li class="badge">⏱ ' + esc(t.time) + '</li>' +
+        '</ul>' +
+        '<p class="privacy">🔒 ' + esc(t.privacy) + '</p>' +
+        '<button type="button" class="btn btn--primary btn--large" id="start"' + (startAttrs || '') + '>' + esc(t.start) + '</button>' +
+      '</section>';
+  }
+
+  return { fill: fill, plain: plain, phrases: phrases, findField: findField, diagnose: diagnose, esc: esc, topHtml: topHtml, GENERIC_FIELD: GENERIC_FIELD };
 });
